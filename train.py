@@ -32,7 +32,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
 
     # Single training loop measured by number of batches
     for i in range(args.iters):
-        
+        print(i)
         # Reset loss trackers
         if i % args.log_every == 0:
             loss.reset_metrics()
@@ -58,7 +58,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
                 msg += '{}: {:.3f}\t'.format(key, value.avg)
             logger.info(msg)
 
-        if i % (args.val_every or args.log_every) == 0:
+        if i > 0 and i % (args.val_every or args.log_every) == 0:
             # Run validation set
             acc1 = test(args, logger, device, data_iterators['val'], model)
 
