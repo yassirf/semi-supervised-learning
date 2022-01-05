@@ -32,7 +32,7 @@ def get_iters(
     ):
 
     # Load logger
-    logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
 
     logger.info("Loading data")
@@ -96,12 +96,6 @@ def get_iters(
     # If validation set has a size of zero, set it to testing set
     if n_valididation == 0: x_validation, y_validation = x_test, y_test
 
-    # Logging dataset sizes
-    logger.info("Number of labelled examples:   {}".format(str(len(x_labelled)).rjust(10)))
-    logger.info("Number of unlabelled examples: {}".format(str(len(x_unlabelled)).rjust(10)))
-    logger.info("Number of validation examples: {}".format(str(len(x_validation)).rjust(10)))
-    logger.info("Number of test examples:       {}".format(str(len(x_test)).rjust(10)))
-
     data_iterators = {
         'labelled': iter(DataLoader(
             SimpleDataset(x_labelled, y_labelled, transform_x = data_transforms['labelled']),
@@ -122,5 +116,11 @@ def get_iters(
             batch_size = test_batch_size, num_workers = workers, shuffle = False
         )
     }
+
+    # Logging dataset sizes
+    logger.info("Number of labelled examples:   {}".format(str(len(x_labelled)).rjust(10)))
+    logger.info("Number of unlabelled examples: {}".format(str(len(x_unlabelled)).rjust(10)))
+    logger.info("Number of validation examples: {}".format(str(len(x_validation)).rjust(10)))
+    logger.info("Number of test examples:       {}".format(str(len(x_test)).rjust(10)))
 
     return data_iterators

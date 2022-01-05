@@ -25,7 +25,7 @@ def get_init_args():
 
     # Datasets
     parser.add_argument('--dataset', default='cifar10', type=str, help='image classification dataset (default: cifar10)')
-    parser.add_argument('--workers', default=4, type=int, help='number of data loading workers (default: 4)')
+    parser.add_argument('--workers', default=0, type=int, help='number of data loading workers (default: 0)')
 
     # Training options
     parser.add_argument('--iters', default=10000, type=int, help='number of iterations to train (default: 10000)')

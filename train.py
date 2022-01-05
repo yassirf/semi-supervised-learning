@@ -3,6 +3,10 @@ Generic training script for both supervised and semi-supervised models.
 Yassir Fathullah 2022
 """
 
+# Suppress warnings
+import warnings
+warnings.filterwarnings('ignore')
+
 import torch
 import utils
 import datasets
@@ -11,9 +15,6 @@ from loss import crossentropy
 # Logger for main training script
 import logging
 
-# Suppress warnings
-import warnings
-warnings.filterwarnings("ignore")
 
 def train(args, logger, device, data_iterators, model, optimiser, scheduler, loss):
 
