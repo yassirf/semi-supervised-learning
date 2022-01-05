@@ -96,17 +96,23 @@ def get_iters(
     # If validation set has a size of zero, set it to testing set
     if n_valididation == 0: x_validation, y_validation = x_test, y_test
 
+    # Logging dataset sizes
+    logger.info("Number of labelled examples:   {}".format(str(len(x_labelled)).rjust(10)))
+    logger.info("Number of unlabelled examples: {}".format(str(len(x_unlabelled)).rjust(10)))
+    logger.info("Number of validation examples: {}".format(str(len(x_validation)).rjust(10)))
+    logger.info("Number of test examples:       {}".format(str(len(x_test)).rjust(10)))
+
     data_iterators = {
-        'labelled': DataLoader(
+        'labelled': iter(DataLoader(
             SimpleDataset(x_labelled, y_labelled, transform_x = data_transforms['labelled']),
             batch_size = l_batch_size, num_workers = workers,
             sampler = InfiniteSampler(len(x_labelled)),
-        ),
-        'unlabelled': DataLoader(
+        )),
+        'unlabelled': iter(DataLoader(
             SimpleDataset(x_unlabelled, y_unlabelled, transform_x = data_transforms['unlabelled']),
             batch_size = ul_batch_size, num_workers = workers,
             sampler = InfiniteSampler(len(x_unlabelled)),
-        ),
+        )),
         'val': DataLoader(
             SimpleDataset(x_validation, y_validation, transform_x = data_transforms['test']),
             batch_size = test_batch_size, num_workers = workers, shuffle = False
@@ -116,11 +122,5 @@ def get_iters(
             batch_size = test_batch_size, num_workers = workers, shuffle = False
         )
     }
-
-    # Logging dataset sizes
-    logger.info("Number of labelled examples:   {}".format(str(len(x_labelled)).rjust(10)))
-    logger.info("Number of unlabelled examples: {}".format(str(len(x_unlabelled)).rjust(10)))
-    logger.info("Number of validation examples: {}".format(str(len(x_validation)).rjust(10)))
-    logger.info("Number of test examples:       {}".format(str(len(x_test)).rjust(10)))
 
     return data_iterators

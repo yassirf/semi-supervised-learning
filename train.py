@@ -31,15 +31,15 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
     model.train()
 
     # Single training loop measured by number of batches
-    for i, (batch_l, batch_ul) in enumerate(zip(data_iterators['labelled'], data_iterators['unlabelled'])):
+    for i in range(args.iters):
         
         # Reset loss trackers
         if i % args.log_every == 0:
             loss.reset_metrics()
         
         # Get labelled and unlabelled examples
-        x_l, y_l = batch_l
-        x_ul, _ = batch_ul
+        x_l, y_l = next(data_iterators['labelled'])
+        x_ul, _ = next(data_iterators['unlabelled'])
 
         # Initialise input to loss and move to device
         loss_input_info = {}
