@@ -57,7 +57,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
 
         if i > 0 and i % (args.val_every or args.log_every) == 0:
             # Run validation set
-            acc1 = test(args, logger, device, data_iterators['val'], model)
+            acc1 = test(args, logger, device, data_iterators['val'], model.clone())
 
             # Update best accuracy and log
             best_accuracy = max(acc1.avg, best_accuracy)
