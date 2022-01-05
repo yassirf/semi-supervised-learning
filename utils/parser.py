@@ -79,8 +79,9 @@ def get_optim_args(parser):
 
 
 def get_schedule_args(parser):
-    # Scheduler
+    # Scheduler and learning rate
     parser.add_argument('--lr-scheduler', default='cosine', type=str, help='type of learning rate schedule (default: cosine)')
+    parser.add_argument('--learning-rate-final', default=0.0, type=float, help='final learning rate (default: 0.0)')
     return parser
 
 
