@@ -9,7 +9,7 @@ This repository implements a collection of Semi-Supervised Learning (SSL) algori
 
 #
 ### Training a model
-Use the following command to train a WideResNet (28-2) with virtual adverserial training
+Use the following command to train a Wide-ResNet (28-2) with virtual adverserial training
 ```
 python train.py -a wrn --loss vat --checkpoint checkpoints/cifar10/wrn
 ```
