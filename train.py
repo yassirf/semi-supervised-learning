@@ -9,6 +9,7 @@ warnings.filterwarnings('ignore')
 
 import torch
 import utils
+from utils.meter import AverageMeter
 import datasets
 from loss import crossentropy
 
@@ -59,14 +60,16 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
             # Run validation set
             # acc1 = test(args, logger, device, data_iterators['val'], model.clone())
 
+            acc1 = AverageMeter()
+
             # Update best accuracy
-            # best_accuracy = max(acc1.avg, best_accuracy)
+            best_accuracy = max(acc1.avg, best_accuracy)
 
             # Validation log
-            # logger.info("test\tbest acc1: {:.3f}".format(best_accuracy))
+            logger.info("test\tbest acc1: {:.3f}".format(best_accuracy))
 
             # Save models
-            # checkpointer.save(i, acc1.avg, model, optimiser)
+            checkpointer.save(i, acc1.avg, model, optimiser)
             pass
     
     # Save last model 
