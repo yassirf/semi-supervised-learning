@@ -102,6 +102,11 @@ def get_iters(
     logger.info("Number of validation examples: {}".format(str(len(x_validation)).rjust(10)))
     logger.info("Number of test examples:       {}".format(str(len(x_test)).rjust(10)))
 
+    # Unlabelled data might have zero size, so we need to avoid issues
+    if len(x_unlabelled) == 0:
+        x_unlabelled = x_labelled[:10]
+        y_unlabelled = y_labelled[:10]
+
     data_iterators = {
         'labelled': iter(DataLoader(
             SimpleDataset(x_labelled, y_labelled, transform_x = data_transforms['labelled']),
