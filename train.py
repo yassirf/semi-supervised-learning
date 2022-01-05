@@ -32,7 +32,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
 
     # Single training loop measured by number of batches
     for i in range(args.iters):
-        print(i)
+        
         # Reset loss trackers
         if i % args.log_every == 0:
             loss.reset_metrics()

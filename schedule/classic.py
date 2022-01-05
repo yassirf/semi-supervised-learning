@@ -65,8 +65,10 @@ def cosinept(args, optimiser):
     lr_start = args.learning_rate
     lr_end = args.learning_rate_final
 
+    ratio = lr_end/lr_start
+
     # Multiplicative function
-    lr_lambda = lambda i: lr_end + 0.50 * (lr_start - lr_end) * (1 + np.cos(np.pi * i/total))
+    lr_lambda = lambda i: ratio + 0.50 * (1.0 - ratio) * (1 + np.cos(np.pi * i/total))
     
     # Scheduler
     return torch.optim.lr_scheduler.LambdaLR(
