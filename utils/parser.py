@@ -32,7 +32,7 @@ def get_init_args():
     parser.add_argument('--train-l-batch', default=128, type=int, help='train labelled batchsize (default: 128)')
     parser.add_argument('--train-l-augment', default='standard', type=str, help='labelled: nature of data augmentation (default: standard)')
 
-    parser.add_argument('--train-ul-batch', default=512, type=int, help='train unlabelled batchsize (default: 128)')
+    parser.add_argument('--train-ul-batch', default=128, type=int, help='train unlabelled batchsize (default: 128)')
     parser.add_argument('--train-ul-augment', default='standard', type=str, help='unlabelled: nature of data augmentation (default: standard)')
     
     parser.add_argument('--test-batch', default=100, type=int, help='test batchsize (default: 100)')
