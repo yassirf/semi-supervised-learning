@@ -1,3 +1,4 @@
+import torch
 from utils.meter import AverageMeter
 
 
@@ -29,7 +30,6 @@ class BaseLoss(object):
         self.model = model
         self.optimiser = optimiser
         self.scheduler = scheduler
-        self.usegrad = (optimiser is not None)
         self.metrics = {}
 
     def reset_optimiser(self):
@@ -54,18 +54,25 @@ class BaseLoss(object):
     def forward(self, info):
         raise NotImplementedError
 
+    @torch.no_grad()
+    def eval_forward(self, info, batch_size = 1):
+
+        # Get the loss based on model predictions in info
+        _, linfo = self.forward(info)
+
+        # Record the losses in linfo
+        self.record_metrics(linfo['metrics'], batch_size = batch_size)
+
     def __call__(self, info, batch_size = 1):
 
-        if self.usegrad:
-            # Reset optimiser first
-            self.reset_optimiser()
+        # Reset optimiser first
+        self.reset_optimiser()
 
         # Get the loss based on model predictions in info
         loss, linfo = self.forward(info)
 
-        if self.usegrad:
-            # Perform a step
-            self.step(loss)
+        # Perform a step
+        self.step(loss)
 
         # Record the losses in linfo
         self.record_metrics(linfo['metrics'], batch_size = batch_size)

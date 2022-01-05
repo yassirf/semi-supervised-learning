@@ -27,9 +27,6 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
     # Checkpointer for saving
     checkpointer = utils.Checkpointer(path = args.checkpoint, save_last_n = -1)
 
-    # Set model into training mode
-    model.train()
-
     # Single training loop measured by number of batches
     for i in range(args.iters):
         
@@ -95,7 +92,7 @@ def test(args, logger, device, dataloader, model):
         loss_input_info['y_l'] = y.to(device)
 
         # Compute losses and metrics
-        loss(loss_input_info, batch_size = x.size(0))
+        loss.eval_forward(loss_input_info, batch_size = x.size(0))
 
     msg = 'test\t'
     for key, value in loss.metrics.items():
