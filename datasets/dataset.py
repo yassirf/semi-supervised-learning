@@ -28,7 +28,7 @@ def get_iters(
         test_batch_size = 256,
         data_transforms = None,
         pseudo_label = None,
-        workers = 8, 
+        workers = 0, 
     ):
 
     # Load logger
@@ -97,16 +97,16 @@ def get_iters(
     if n_valididation == 0: x_validation, y_validation = x_test, y_test
 
     data_iterators = {
-        'labelled': iter(DataLoader(
+        'labelled': DataLoader(
             SimpleDataset(x_labelled, y_labelled, transform_x = data_transforms['labelled']),
             batch_size = l_batch_size, num_workers = workers,
             sampler = InfiniteSampler(len(x_labelled)),
-        )),
-        'unlabelled': iter(DataLoader(
+        ),
+        'unlabelled': DataLoader(
             SimpleDataset(x_unlabelled, y_unlabelled, transform_x = data_transforms['unlabelled']),
             batch_size = ul_batch_size, num_workers = workers,
             sampler = InfiniteSampler(len(x_unlabelled)),
-        )),
+        ),
         'val': DataLoader(
             SimpleDataset(x_validation, y_validation, transform_x = data_transforms['test']),
             batch_size = test_batch_size, num_workers = workers, shuffle = False
