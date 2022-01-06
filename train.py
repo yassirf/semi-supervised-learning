@@ -7,11 +7,15 @@ Yassir Fathullah 2022
 import warnings
 warnings.filterwarnings('ignore')
 
+import time
 import torch
+import torch.nn as nn
+
+import datasets
 import utils
 from utils.meter import AverageMeter
-import datasets
-from loss import crossentropy
+from loss.base import accuracy
+
 
 # Logger for main training script
 import logging
@@ -22,18 +26,14 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
     # Set model into training mode
     model.train()
 
-    # Best accuracy tracker
-    best_accuracy = 0.0
+    # Best loss and accuracy tracker
+    best_loss, best_top1, best_top5 = 0.0, 0.0, 0.0
 
     # Checkpointer for saving
     checkpointer = utils.Checkpointer(path = args.checkpoint, save_last_n = -1)
 
     # Single training loop measured by number of batches
-    for i in range(args.iters):
-        
-        # Reset loss trackers
-        if i % args.log_every == 0:
-            loss.reset_metrics()
+    for i in range(1, args.iters + 1):
         
         # Get labelled and unlabelled examples
         x_l, y_l = next(data_iterators['labelled'])
@@ -49,28 +49,31 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
         loss(loss_input_info)
 
         if i % args.log_every == 0:
-
+            
             msg  = 'iteration: {}\t'.format(str(i).rjust(6))
             msg += 'lr: {:.5f}\t'.format(loss.lr)
             for key, value in loss.metrics.items():
                 msg += '{}: {:.3f}\t'.format(key, value.avg)
             logger.info(msg)
+            loss.reset_metrics()
 
-        if i > 0 and i % (args.val_every or args.log_every) == 0:
+        if i % (args.val_every or args.log_every) == 0:
             # Run validation set
-            # acc1 = test(args, logger, device, data_iterators['val'], model.clone())
+            val_loss, val_top1, val_top5 = test(args, logger, device, data_iterators['val'], model)
 
-            acc1 = AverageMeter()
+            # Save model checkpoint
+            checkpointer.save(i, val_top1, model, optimiser)
 
-            # Update best accuracy
-            best_accuracy = max(acc1.avg, best_accuracy)
+            # Update best metrics
+            if val_top1 > best_top1:
+                best_loss = val_loss
+                best_top1 = val_top1
+                best_top5 = val_top5
 
-            # Validation log
-            logger.info("test\tbest acc1: {:.3f}".format(best_accuracy))
-
-            # Save models
-            checkpointer.save(i, acc1.avg, model, optimiser)
-            pass
+            # Logging validation 
+            msg = "test opt\tloss: {loss:.3f} | top1: {top1: .3f} | top5: {top5: .3f}"
+            msg = msg.format(loss=best_loss, top1=best_top1, top5=best_top5)
+            logger.info(msg)
     
     # Save last model 
     checkpointer.save(i, None, model, optimiser)
@@ -78,34 +81,42 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
 
 @torch.no_grad()
 def test(args, logger, device, dataloader, model):
-    
-    # Create the cross-entropy loss for tracking
-    loss = crossentropy(args = args, model = model, optimiser = None, scheduler = None)
-    loss.reset_metrics()
 
     # Set model into evaluation mode
     model.eval()
 
+    # Evaluation trackers
+    criterion = nn.CrossEntropyLoss()
+
+    losses = AverageMeter()
+    top1 = AverageMeter()
+    top5 = AverageMeter()
+
+    t0 = time.time()
     # Single testing loop
-    for i, (x, y) in enumerate(dataloader):
+    for x, y in dataloader:
 
         # Move to cuda if being used
         x, y = x.to(device), y.to(device)
 
-        # Initialise input to loss and move to device
-        loss_input_info = {}
-        loss_input_info['x_l'] = x.to(device)
-        loss_input_info['y_l'] = y.to(device)
+        # Make prediction with model
+        pred, _ = model(x)
 
-        # Compute losses and metrics
-        loss.eval_forward(loss_input_info, batch_size = x.size(0))
+        # And get metrics
+        loss = criterion(pred, y)
+        accs = accuracy(pred.detach().clone(), y, top_k = (1, 5))
 
-    msg = 'test\t'
-    for key, value in loss.metrics.items():
-        msg += '{}: {:.3f}\t'.format(key, value.avg)
+        # Update trackers
+        losses.update(loss.data.item(), x.size(0))
+        top1.update(accs[0].item(), x.size(0))
+        top5.update(accs[1].item(), x.size(0))
+
+    # Logging message
+    msg = "test\tloss: {loss:.3f} | top1: {top1: .3f} | top5: {top5: .3f} | time {time: .3f}"
+    msg = msg.format(loss=losses.avg, top1=top1.avg, top5=top5.avg, time=time.time()-t0)
     logger.info(msg)
 
-    return loss.metrics['acc1']
+    return losses.avg, top1.avg, top5.avg
 
 
 def main():
