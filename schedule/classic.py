@@ -57,7 +57,6 @@ def cosine3(args, optimiser):
 
 
 def cosinept(args, optimiser):
-    
     # Total number of iterations
     total = args.iters
 
@@ -73,3 +72,14 @@ def cosinept(args, optimiser):
     # Scheduler
     return torch.optim.lr_scheduler.LambdaLR(
         optimiser, lr_lambda = lr_lambda)
+
+
+def multisteplr(args, optimiser):
+    # Total number of iterations
+    total = args.iters
+
+    # Get integer milestones
+    milestones = (total * np.array(args.milestones)).astype(int)
+
+    return torch.optim.lr_scheduler.MultiStepLR(
+        optimiser, milestones=milestones.tolist(), gamma=args.gamma)

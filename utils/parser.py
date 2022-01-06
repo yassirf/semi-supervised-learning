@@ -75,13 +75,15 @@ def get_optim_args(parser):
     parser.add_argument('--momentum', default=0.9, type=float, help='momentum (default: 0.9)')
     parser.add_argument('--weight-decay', default=1e-4, type=float, help='weight decay (default: 1e-4)')
     parser.add_argument('--learning-rate', default=0.1, type=float, help='initial learning rate')
+    parser.add_argument('--learning-rate-final', default=0.0, type=float, help='final learning rate (default: 0.0 — not always used)')
     return parser
 
 
 def get_schedule_args(parser):
     # Scheduler and learning rate
-    parser.add_argument('--lr-scheduler', default='cosine', type=str, help='type of learning rate schedule (default: cosine)')
-    parser.add_argument('--learning-rate-final', default=0.0, type=float, help='final learning rate (default: 0.0)')
+    parser.add_argument('--lr-scheduler', default='multistep', type=str, help='type of learning rate schedule (default: multistep)')
+    parser.add_argument('--milestones', default=[0.3, 0.6, 0.8], type=float,  nargs='+', help='multisteplr fractional milestones (default: [0.3, 0.6, 0.8])')
+    parser.add_argument('--gamma', default=0.2, type=float, help='multisteplr multiplicative decay (default: 0.2)')
     return parser
 
 
