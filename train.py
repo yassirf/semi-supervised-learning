@@ -172,7 +172,7 @@ def main():
     train(args, logger, device, data_iters, model, optimiser, scheduler, loss)
 
     logger.info("Evaluation phase")
-    test(args, logger, device, data_iters, model)
+    test(args, logger, device, data_iters['test'], model)
 
 
 if __name__ == '__main__':
