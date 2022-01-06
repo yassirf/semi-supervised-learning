@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-__all__ = ['cosine', 'cosine1', 'cosine2', 'cosine3', 'cosinept']
+__all__ = ['cosine', 'cosine1', 'cosine2', 'cosine3', 'cosinept', 'multistep']
 
 
 def cosine(args, optimiser):
@@ -74,7 +74,7 @@ def cosinept(args, optimiser):
         optimiser, lr_lambda = lr_lambda)
 
 
-def multisteplr(args, optimiser):
+def multistep(args, optimiser):
     # Total number of iterations
     total = args.iters
 
