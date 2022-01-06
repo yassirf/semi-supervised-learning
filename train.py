@@ -52,7 +52,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
             loss.reset_metrics()
 
         if i % (args.val_every or args.log_every) == 0:
-            # Run validation set
+            # Run validation set with a copied model
             val_loss, val_top1, val_top5 = test(args, logger, device, data_iterators['val'], copy.deepcopy(model).to(device))
 
             # Save model checkpoint

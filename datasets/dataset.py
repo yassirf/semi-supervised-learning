@@ -77,21 +77,16 @@ def get_iters(
     # Extract indices for labelled, validation, and unlabelled sets
     labelled_idx    = randperm[:n_labelled]
     validation_idx = randperm[n_labelled:n_labelled + n_valididation]
-    unlabelled_idx  = randperm[n_labelled + n_valididation:]
 
     # Assign input data
     x_labelled    = x_train[labelled_idx]
     x_validation = x_train[validation_idx]
-    x_unlabelled  = x_train[unlabelled_idx]
+    x_unlabelled  = x_train
 
     # Assign output data
     y_labelled    = y_train[labelled_idx]
     y_validation = y_train[validation_idx]
-    if pseudo_label is None:
-        y_unlabelled = y_train[unlabelled_idx]
-    else:
-        assert isinstance(pseudo_label, np.ndarray)
-        y_unlabelled = pseudo_label
+    y_unlabelled = y_train
 
     # If validation set has a size of zero, set it to testing set
     if n_valididation == 0: x_validation, y_validation = x_test, y_test
@@ -101,12 +96,7 @@ def get_iters(
     logger.info("Number of unlabelled examples: {}".format(str(len(x_unlabelled)).rjust(10)))
     logger.info("Number of validation examples: {}".format(str(len(x_validation)).rjust(10)))
     logger.info("Number of test examples:       {}".format(str(len(x_test)).rjust(10)))
-
-    # Unlabelled data might have zero size, so we need to avoid issues
-    if len(x_unlabelled) == 0:
-        x_unlabelled = x_labelled[:10]
-        y_unlabelled = y_labelled[:10]
-
+    
     data_iterators = {
         'labelled': iter(DataLoader(
             SimpleDataset(x_labelled, y_labelled, transform_x = data_transforms['labelled']),
