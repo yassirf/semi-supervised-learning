@@ -3,10 +3,7 @@ Generic training script for both supervised and semi-supervised models.
 Yassir Fathullah 2022
 """
 
-# Suppress warnings
-import warnings
-warnings.filterwarnings('ignore')
-
+import copy
 import time
 import torch
 import torch.nn as nn
@@ -15,7 +12,6 @@ import datasets
 import utils
 from utils.meter import AverageMeter
 from loss.base import accuracy
-
 
 # Logger for main training script
 import logging
@@ -49,9 +45,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
         loss(loss_input_info)
 
         if i % args.log_every == 0:
-            
-            msg  = 'iteration: {}\t'.format(str(i).rjust(6))
-            msg += 'lr: {:.5f}\t'.format(loss.lr)
+            msg  = 'iteration: {}\tlr: {:.5f}\t'.format(str(i).rjust(6), loss.lr)
             for key, value in loss.metrics.items():
                 msg += '{}: {:.3f}\t'.format(key, value.avg)
             logger.info(msg)
@@ -59,7 +53,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
 
         if i % (args.val_every or args.log_every) == 0:
             # Run validation set
-            val_loss, val_top1, val_top5 = test(args, logger, device, data_iterators['val'], model)
+            val_loss, val_top1, val_top5 = test(args, logger, device, data_iterators['val'], copy.deepcopy(model).to(device))
 
             # Save model checkpoint
             checkpointer.save(i, val_top1, model, optimiser)
@@ -159,7 +153,7 @@ def main():
     # Load model
     logger.info("Creating model: {}".format(args.arch))
     model = utils.loaders.load_model(args).to(device)
-    logger.info("Number of parameters: {:.3f}M".format(sum(p.numel() for p in model.parameters()) / 1000000.0))
+    logger.info("Number of parameters: {:.3f}M".format(sum(p.numel() for p in model.parameters()) / 1.0e6))
 
     # Load optimiser
     logger.info("Creating optimiser: {}".format(args.optim))
