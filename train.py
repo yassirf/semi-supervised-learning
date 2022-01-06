@@ -70,7 +70,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
             logger.info(msg)
     
     # Save last model 
-    checkpointer.save(i, None, model, optimiser)
+    checkpointer.save(i, 0.0, model, optimiser)
 
 
 @torch.no_grad()
