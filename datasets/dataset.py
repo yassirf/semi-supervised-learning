@@ -75,21 +75,25 @@ def get_iters(
     randperm = np.random.permutation(len(x_train))
 
     # Extract indices for labelled, validation, and unlabelled sets
-    labelled_idx    = randperm[:n_labelled]
+    labelled_idx   = randperm[:n_labelled]
     validation_idx = randperm[n_labelled:n_labelled + n_valididation]
+    unlabelled_idx = randperm[n_labelled + n_valididation:]
 
     # Assign input data
-    x_labelled    = x_train[labelled_idx]
+    x_labelled   = x_train[labelled_idx]
     x_validation = x_train[validation_idx]
-    x_unlabelled  = x_train
+    x_unlabelled = x_train[unlabelled_idx]
 
     # Assign output data
-    y_labelled    = y_train[labelled_idx]
+    y_labelled   = y_train[labelled_idx]
     y_validation = y_train[validation_idx]
-    y_unlabelled = y_train
+    y_unlabelled = y_train[unlabelled_idx]
 
     # If validation set has a size of zero, set it to testing set
-    if n_valididation == 0: x_validation, y_validation = x_test, y_test
+    if len(validation_idx) == 0: x_validation, y_validation = x_test, y_test
+
+    # If unlabelled set had a size of zero, set it to train set
+    if len(unlabelled_idx) == 0: x_unlabelled, y_unlabelled = x_train, y_train
 
     # Logging dataset sizes
     logger.info("Number of labelled examples:   {}".format(str(len(x_labelled)).rjust(10)))

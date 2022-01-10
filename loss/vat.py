@@ -6,7 +6,7 @@ from torch import linalg as LA
 
 from .cross_entropy import CrossEntropy
 
-__all__ = ['vat']
+__all__ = ['crossentropy_and_vat']
 
 
 @contextlib.contextmanager

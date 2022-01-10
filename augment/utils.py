@@ -1,7 +1,8 @@
 
 from .input import (
     none_transform, 
-    standard_transform
+    standard_transform,
+    composed_standard_transform,
 )
 
 __all__ = [
@@ -14,6 +15,8 @@ def get_data_transform(mode = 'none'):
         return none_transform()
     if mode in 'standard_transform':
         return standard_transform()
+    if mode in 'composed_standard_transform':
+        return composed_standard_transform()
     raise ValueError
 
 def get_data_transforms(args):

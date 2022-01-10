@@ -32,6 +32,9 @@ class BaseLoss(object):
         self.scheduler = scheduler
         self.metrics = {}
 
+        # Tracking iterations
+        self.i = 0
+
     def reset_optimiser(self):
         self.optimiser.zero_grad()
 
@@ -46,6 +49,10 @@ class BaseLoss(object):
             self.metrics[key].update(value, batch_size)
 
     def step(self, loss):
+        # Update iteration 
+        self.i += 1
+
+        # Perform backward pass and step
         loss.backward()
         self.optimiser.step()
         self.scheduler.step()
