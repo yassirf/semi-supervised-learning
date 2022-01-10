@@ -56,17 +56,17 @@ class MeanTeacher(CrossEntropy):
         
         return model
 
-    def update_teacher(self, model, step):
+    def update_teacher(self):
         # Use the true average of prior checkpoints until the exponential average is more accurate
-        alpha = min(1 - 1 / (step + 1), self.alpha)
+        alpha = min(1 - 1 / (self.step + 1), self.alpha)
 
         # Use weighted average of student and teacher parameters
-        for ema_param, param in zip(self.teacher.parameters(), model.parameters()):
+        for ema_param, param in zip(self.teacher.parameters(), self.model.parameters()):
             ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
 
     def step(self, loss):
-        # Call the optimisation scheme and update iteration
-        super(MeanTeacher, self).step(loss)
+        # Update the teacher based on old student parameters
+        self.update_teacher()
 
         # Get the ratio of ramp-up section
         ratio = self.i/self.rampi
@@ -77,6 +77,9 @@ class MeanTeacher(CrossEntropy):
 
         # Let the mixing weight linearly increase until final value
         self.w = min(ratio, 1.0) * self.wf
+
+        # Call the optimisation scheme and update iteration
+        super(MeanTeacher, self).step(loss)
 
     def forward_meanteacher(self, info):
         

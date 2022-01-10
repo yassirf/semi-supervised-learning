@@ -1,5 +1,7 @@
 import argparse
 
+from torch._C import default_generator
+
 __all__ = ['get_args']
 
 
@@ -29,6 +31,10 @@ def get_init_args():
 
     # Training options
     parser.add_argument('--iters', default=10000, type=int, help='number of iterations to train (default: 10000)')
+    parser.add_argument('--num-augments', default=2, type=int, help='number of repeated augmentations in dedicated augment options (default: 2)')
+    parser.add_argument('--randaugment-n', default=2, type=int, help='randaugment number of augmentation (default: 2)')
+    parser.add_argument('--randaugment-m', default=9, type=int, help='randaugment number of possible augmentations (default: 9)')
+
     parser.add_argument('--train-l-batch', default=128, type=int, help='train labelled batchsize (default: 128)')
     parser.add_argument('--train-l-augment', default='standard', type=str, help='labelled: nature of data augmentation (default: standard)')
 
