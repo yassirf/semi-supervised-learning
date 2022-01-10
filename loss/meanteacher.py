@@ -79,14 +79,15 @@ class MeanTeacher(CrossEntropy):
         
         # Get unlabelled images
         # For mean-teacher methods the input should have been augmented twice
-        # having the shape (batch, 2, *)
+        # having the shape (batch, 2, *). This is done using the composed_standard_transform
         x_ul = info['x_ul']
 
         # The first input is for the student model
-        pred_ul = self.model(x_ul[:, 0])
+        pred_ul, _ = self.model(x_ul[:, 0])
 
-        # The second input is for the teacher model
-        teacher_ul = self.teacher(x_ul[:, 1])
+        with torch.no_grad():
+            # The second input is for the teacher model
+            teacher_ul, _ = self.teacher(x_ul[:, 1])
 
         # Get the loss averaged over batch
         mt = self.consistency_loss(pred_ul, teacher_ul)

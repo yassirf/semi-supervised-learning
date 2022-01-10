@@ -66,6 +66,10 @@ def get_loss_args(parser):
     parser.add_argument('--vat_xi', default=1e-6, type=float, help='vat small optimisation direction (default: 1e-8)')
     parser.add_argument('--vat_eps', default=8.0, type=float, help='vat optimisation size (default: 1.0)')
     parser.add_argument('--vat_ip', default=1, type=int, help='vat number of power iterations (default: 1)')
+    parser.add_argument('--meanteacher_alpha_ramp', default=0.990, type=float, help='mean-teacher ema parameter during ramp-up (default: 0.990)')
+    parser.add_argument('--meanteacher_alpha', default=0.999, type=float, help='mean-teacher ema parameter after ramp-up (default: 0.999)')
+    parser.add_argument('--meanteacher_w', default=10.00, type=float, help='mean-teacher mixing loss coefficient (default: 10.00)')
+    parser.add_argument('--meanteacher_i', default=15000, type=int, help='mean-teacher number of ramp-up iterations (default: 30000)')
     return parser
 
 

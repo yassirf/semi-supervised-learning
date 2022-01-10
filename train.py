@@ -30,7 +30,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
 
     # Single training loop measured by number of batches
     for i in range(1, args.iters + 1):
-        
+       
         # Get labelled and unlabelled examples
         x_l, y_l = next(data_iterators['labelled'])
         x_ul, _ = next(data_iterators['unlabelled'])
