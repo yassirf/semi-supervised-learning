@@ -94,6 +94,7 @@ def get_iters(
 
     # If unlabelled set had a size of zero, set it to train set
     if len(unlabelled_idx) == 0: x_unlabelled, y_unlabelled = x_train, y_train
+    x_unlabelled, y_unlabelled = x_train, y_train
 
     # Logging dataset sizes
     logger.info("Number of labelled examples:   {}".format(str(len(x_labelled)).rjust(10)))
