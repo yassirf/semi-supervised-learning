@@ -39,6 +39,9 @@ class MeanTeacher(CrossEntropy):
 
         # Consistency loss
         self.consistency_loss = softmax_mse_loss
+    
+    def get_validation_model(self):
+        return self.teacher
 
     def build_teacher(self):
         # Get device to build model on

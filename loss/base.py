@@ -48,6 +48,9 @@ class BaseLoss(object):
                 self.metrics[key] = AverageMeter()
             self.metrics[key].update(value, batch_size)
 
+    def get_validation_model(self):
+        return self.model
+
     def step(self, loss):
         # Update iteration 
         self.i += 1

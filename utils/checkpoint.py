@@ -25,7 +25,7 @@ class Checkpointer(object):
         # Best accuracy so far:
         self.acc = 0.0
 
-    def save_generic(self, i, acc, model, optimiser = None, filename = "checkpoint.pt"):
+    def save_generic(self, i, acc, model, loss = None, optimiser = None, filename = "checkpoint.pt"):
         path = os.path.join(self.path, filename)
 
         torch.save({
@@ -33,9 +33,10 @@ class Checkpointer(object):
             'accuracy': acc,
             'state_dict': model.state_dict(),
             'optimizer': None if optimiser is None else optimiser.state_dict(),
+            'loss': loss,
         }, path)
 
-    def save_best(self, i, acc, model, optimiser = None):
+    def save_best(self, i, acc, model, loss = None, optimiser = None):
 
         # If the accuracy is lower then do not save
         if acc <= self.acc:
@@ -45,13 +46,13 @@ class Checkpointer(object):
         self.acc = acc
 
         # Save best model
-        self.save_generic(i, acc, model, optimiser, filename = "checkpoint_best.pt")
+        self.save_generic(i, acc, model, loss, optimiser, filename = "checkpoint_best.pt")
 
-    def save_last(self, i, acc, model, optimiser = None):
+    def save_last(self, i, acc, model, loss = None, optimiser = None):
         # Save last model
-        self.save_generic(i, acc, model, optimiser, filename = "checkpoint_last.pt")
+        self.save_generic(i, acc, model, loss, optimiser, filename = "checkpoint_last.pt")
 
-    def save(self, i, acc, model, optimiser = None):
+    def save(self, i, acc, model, loss = None, optimiser = None):
         
         # First check if we should checkpoint
         if self.save_interm:
@@ -71,8 +72,8 @@ class Checkpointer(object):
             self.names.append("checkpoint{}.pt".format(self.n))
 
             # Save model
-            self.save_generic(i, acc, model, optimiser, filename = self.names[-1])
+            self.save_generic(i, acc, model, loss, optimiser, filename = self.names[-1])
 
         # Save last and best models
-        self.save_last(i, acc, model, optimiser)
-        self.save_best(i, acc, model, optimiser)
+        self.save_last(i, acc, model, loss, optimiser)
+        self.save_best(i, acc, model, loss, optimiser)

@@ -52,11 +52,16 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
             loss.reset_metrics()
 
         if i % (args.val_every or args.log_every) == 0:
+
+            # Certain methods have better performance with a teacher like mean-teacher
+            # Note all loss functions should have a "get_validation_model" method
+            valmodel = loss.get_validation_model()
+
             # Run validation set with a copied model
-            val_loss, val_top1, val_top5 = test(args, logger, device, data_iterators['val'], copy.deepcopy(model).to(device))
+            val_loss, val_top1, val_top5 = test(args, logger, device, data_iterators['val'], copy.deepcopy(valmodel).to(device))
 
             # Save model checkpoint
-            checkpointer.save(i, val_top1, model, optimiser)
+            checkpointer.save(i, val_top1, model, loss, optimiser)
 
             # Update best metrics
             if val_top1 > best_top1:
@@ -70,7 +75,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
             logger.info(msg)
     
     # Save last model 
-    checkpointer.save(i, 0.0, model, optimiser)
+    checkpointer.save(i, 0.0, model, loss, optimiser)
 
 
 @torch.no_grad()
