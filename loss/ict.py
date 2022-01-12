@@ -31,6 +31,8 @@ class ICT(MeanTeacher):
 
     def forward_ict(self, info):
         
+        import pdb; pdb.set_trace()
+
         # Get unlabelled images
         # For interpolation consistent training we split the batch into two subbatches
         x_ul = info['x_ul']
