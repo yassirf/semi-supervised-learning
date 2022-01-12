@@ -80,3 +80,7 @@ class ICT(MeanTeacher):
         ce_info['metrics']['ict']  = ict.item()
 
         return loss, ce_info
+
+
+def crossentropy_and_ict(**kwargs):
+    return ICT(**kwargs)
