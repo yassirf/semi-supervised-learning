@@ -62,7 +62,7 @@ class MeanTeacher(CrossEntropy):
 
         # Use weighted average of student and teacher parameters
         for ema_param, param in zip(self.teacher.parameters(), self.model.parameters()):
-            ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
+            ema_param.data.mul_(alpha).add_((1 - alpha) * param.data)
 
     def step(self, loss):
         # Update the teacher based on old student parameters
