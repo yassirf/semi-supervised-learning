@@ -31,12 +31,10 @@ class ICT(MeanTeacher):
 
     def forward_ict(self, info):
         
-        import pdb; pdb.set_trace()
-
         # Get unlabelled images
-        # For interpolation consistent training we split the batch into two subbatches
+        # For mean-teacher methods the input should have been augmented twice
+        # having the shape (batch, 2, *). This is done using the composed_standard_transform
         x_ul = info['x_ul']
-        x_ul = x_ul.view(-1, 2, *x_ul.size()[1:])
 
         # Sample mixup parameter to match shape of images (batch, height, width, channels)
         beta = self.beta.sample((x_ul.size(0), 1, 1, 1))
