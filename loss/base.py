@@ -1,4 +1,6 @@
 import torch
+
+import utils
 from utils.meter import AverageMeter
 
 
@@ -31,6 +33,9 @@ class BaseLoss(object):
         self.optimiser = optimiser
         self.scheduler = scheduler
         self.metrics = {}
+
+        # Get the device
+        self.device = utils.get_device(gpu = args.gpu)
 
         # Tracking iterations
         self.i = 0
