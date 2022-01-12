@@ -76,6 +76,7 @@ def get_loss_args(parser):
     parser.add_argument('--meanteacher_alpha', default=0.999, type=float, help='mean-teacher ema parameter after ramp-up (default: 0.999)')
     parser.add_argument('--meanteacher_w', default=10.00, type=float, help='mean-teacher mixing loss coefficient (default: 10.00)')
     parser.add_argument('--meanteacher_i', default=15000, type=int, help='mean-teacher number of ramp-up iterations (default: 30000)')
+    parser.add_argument('--mixup_alpha', default=0.0, type=float, help='mixup beta distribution parameters (default: 0.0)')
     return parser
 
 
