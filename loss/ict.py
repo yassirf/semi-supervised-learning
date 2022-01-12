@@ -27,7 +27,10 @@ class ICT(MeanTeacher):
         super(ICT, self).__init__(args, model, optimiser, scheduler)
 
         # Get beta distribution parameter
-        self.beta = beta.Beta(torch.tensor(args.mixup_alpha), torch.tensor(args.mixup_alpha))
+        self.beta = beta.Beta(
+            torch.tensor(args.mixup_alpha).to(self.device), 
+            torch.tensor(args.mixup_alpha).to(self.device)
+        )
 
     def forward_ict(self, info):
         
