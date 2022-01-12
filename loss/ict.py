@@ -35,9 +35,10 @@ class ICT(MeanTeacher):
     def forward_ict(self, info):
         
         # Get unlabelled images
-        # For mean-teacher methods the input should have been augmented twice
-        # having the shape (batch, 2, *). This is done using the composed_standard_transform
+        # For mean-teacher methods the input should have been augmented once
+        # having the shape (2 * batch, *). Thereafter reshape the batch into (batch, 2, *)
         x_ul = info['x_ul']
+        x_ul = x_ul.view(-1, 2, *x_ul.size()[1:])
 
         # Sample mixup parameter to match shape of images (batch, height, width, channels)
         beta = self.beta.sample((x_ul.size(0), 1, 1, 1))
