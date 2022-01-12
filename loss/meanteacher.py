@@ -58,7 +58,7 @@ class MeanTeacher(CrossEntropy):
 
     def update_teacher(self):
         # Use the true average of prior checkpoints until the exponential average is more accurate
-        alpha = min(1 - 1 / (self.step + 1), self.alpha)
+        alpha = min(1 - 1 / (self.i + 1), self.alpha)
 
         # Use weighted average of student and teacher parameters
         for ema_param, param in zip(self.teacher.parameters(), self.model.parameters()):
