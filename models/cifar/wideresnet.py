@@ -182,3 +182,22 @@ def linearwideresnet404(**kwargs):
         survival_mode = 'linear',
         **kwargs
     )
+
+
+if __name__ == '__main__':
+
+    # Logger for script and useful timing information
+    import logging
+
+    # Load logger
+    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
+
+    # Load some model
+    logger.info("Loading model wideresnet282")
+    model = wideresnet282(num_classes = 100)
+
+    # Print model hiden size and number of parameters
+    for name, param in model.named_parameters():
+        if name == 'linear.weight': logger.info("Final hidden layer size (out, in): {}".format(param.size()))
+    logger.info("Number of model parameters: {}\n".format(sum(p.numel() for p in model.parameters())))
