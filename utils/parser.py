@@ -12,6 +12,9 @@ def get_args():
     # Get loss args
     parser = get_loss_args(parser)
 
+    # Get arch specific parameters
+    parser = get_arch_spec_args(parser)
+
     # Get optimization args
     parser = get_optim_args(parser)
 
@@ -77,8 +80,14 @@ def get_loss_args(parser):
     parser.add_argument('--meanteacher_w', default=10.00, type=float, help='mean-teacher mixing loss coefficient (default: 10.00)')
     parser.add_argument('--meanteacher_i', default=15000, type=int, help='mean-teacher number of ramp-up iterations (default: 30000)')
     parser.add_argument('--mixup_alpha', default=0.0, type=float, help='mixup beta distribution parameters (default: 0.0)')
+    parser.add_argument('--uce_mu', default=0.0, type=float, help='uce entropy regularisation constant (default: 0.0)')
     return parser
 
+def get_arch_spec_args(parser):
+    # Architecture specific parameters  latent_dim, flow_length
+    parser.add_argument('--latent_dim', default=16, type=int, help='dimensionality of latent space (default: 16)')
+    parser.add_argument('--flow_length', default=1, type=int, help='number of normalizing flow layers (default: 1)')
+    return parser
 
 def get_optim_args(parser):
     # Optimiser and learning rate
