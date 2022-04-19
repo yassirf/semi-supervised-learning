@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 
-from normalizingflow import InverseAutoregressiveFlow, RadialFlow
-from wideresnet import wideresnet282, wideresnet2810, wideresnet404
+from .normalizingflow import InverseAutoregressiveFlow, RadialFlow
+from .wideresnet import wideresnet282, wideresnet2810, wideresnet404
 
 __all__ = [
     'iafwideresnet282',
