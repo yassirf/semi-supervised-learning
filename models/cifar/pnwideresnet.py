@@ -37,7 +37,7 @@ class PosteriorNetwork(nn.Module):
     def forward(self, x):
         
         # Get latent representation
-        z = self.backbone(x)
+        z, _ = self.backbone(x)
         z = self.backbonebn(z)
 
         # Evaluate density for each class (batch, num_classes)
