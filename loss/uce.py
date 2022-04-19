@@ -33,6 +33,9 @@ class UCE(CrossEntropy):
     def __init__(self, args, model, optimiser, scheduler):
         super(UCE, self).__init__(args, model, optimiser, scheduler)
 
+        # Eross-entropy loss function with mean reduction
+        self.ce = nn.CrossEntropyLoss()
+
         # Get loss specific arguments
         self.mu = args.uce_mu
 
@@ -50,13 +53,12 @@ class UCE(CrossEntropy):
         info = {'metrics': {
             'uce': uce.item(),
             'ent': ent.item(),
+            'ce': self.ce(pred_la, y_l).item()
         }}
 
         return uce - self.mu * ent, info
 
     def forward(self, info):
-        # Get the cross-entropy loss and metrics
-        ce, ce_info = super(UCE, self).forward(info)
 
         # Get the virtual adverserial training loss
         uce, uce_info = self.forward_uce(info)
@@ -65,12 +67,12 @@ class UCE(CrossEntropy):
         loss = uce
 
         # Record metrics
-        ce_info['metrics']['loss'] = loss.item()
-        ce_info['metrics']['ce']   = ce.item()
-        ce_info['metrics']['uce']  = uce_info['metrics']['uce']
-        ce_info['metrics']['ent']  = uce_info['metrics']['ent']
+        uce_info['metrics']['loss'] = loss.item()
+        uce_info['metrics']['ce']   = uce_info['metrics']['ce']
+        uce_info['metrics']['uce']  = uce_info['metrics']['uce']
+        uce_info['metrics']['ent']  = uce_info['metrics']['ent']
 
-        return loss, ce_info
+        return loss, uce_info
 
 
 def uncertainty_crossentropy(**kwargs):
