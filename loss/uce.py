@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from torch import linalg as LA
 from torch.distributions.dirichlet import Dirichlet
 
+from .base import accuracy
 from .cross_entropy import CrossEntropy
 
 __all__ = ['uncertainty_crossentropy']
@@ -50,29 +51,22 @@ class UCE(CrossEntropy):
         # Get loss and entropy
         uce, ent = expected_crossentropy_and_entropy(pred_la, y_l)
 
+        # Compute accuracy
+        acc = accuracy(pred_la.detach().clone(), y_l, top_k = (1, 5))
+
         info = {'metrics': {
+            'loss': uce.item(),
+            'acc1': acc[0].item(),
+            'acc5': acc[1].item(),
             'uce': uce.item(),
             'ent': ent.item(),
-            'ce': self.ce(pred_la, y_l).item()
+            'ce': self.ce(pred_la, y_l).item(),
         }}
 
         return uce - self.mu * ent, info
 
     def forward(self, info):
-
-        # Get the virtual adverserial training loss
-        uce, uce_info = self.forward_uce(info)
-
-        # Compute total loss
-        loss = uce
-
-        # Record metrics
-        uce_info['metrics']['loss'] = loss.item()
-        uce_info['metrics']['ce']   = uce_info['metrics']['ce']
-        uce_info['metrics']['uce']  = uce_info['metrics']['uce']
-        uce_info['metrics']['ent']  = uce_info['metrics']['ent']
-
-        return loss, uce_info
+        return self.forward_uce(info)
 
 
 def uncertainty_crossentropy(**kwargs):

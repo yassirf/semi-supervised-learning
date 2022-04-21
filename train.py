@@ -54,11 +54,12 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
         if i % (args.val_every or args.log_every) == 0:
 
             # Certain methods have better performance with a teacher like mean-teacher
-            # Note all loss functions should have a "get_validation_model" method
-            valmodel = loss.get_validation_model()
+            # Note all loss functions should have a "get_validation_model" method and discard any non graph leaves of the model
+            valmodel = utils.loaders.load_model(args).to(device)
+            valmodel.load_state_dict(loss.get_validation_model().state_dict())
 
             # Run validation set with a copied model
-            val_loss, val_top1, val_top5 = test(args, logger, device, data_iterators['val'], copy.deepcopy(valmodel).to(device))
+            val_loss, val_top1, val_top5 = test(args, logger, device, data_iterators['val'], valmodel)
 
             # Save model checkpoint
             checkpointer.save(i, val_top1, model, loss, optimiser)
