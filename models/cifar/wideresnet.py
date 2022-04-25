@@ -1,4 +1,5 @@
 import math
+from turtle import forward
 import torch
 import torch.nn as nn
 import torch.nn.init as init
@@ -16,6 +17,12 @@ __all__ = [
     'linearwideresnet282',
     'linearwideresnet2810',
     'linearwideresnet404',
+    'dirwideresnet282',
+    'dirwideresnet2810',
+    'dirwideresnet404',
+    'dirlinearwideresnet282',
+    'dirlinearwideresnet2810',
+    'dirlinearwideresnet404',
 ]
 
 
@@ -58,7 +65,7 @@ class BasicBlock(nn.Module):
         out = self.shortcut(x) + (out if self.training else self.survival * out)
         return out
 
-        
+
 class WideResNet(nn.Module):
     def __init__(self, depth, widen_factor, dropout_rate, num_classes, survival=1.0, survival_mode='constant', **kwargs):
         super(WideResNet, self).__init__()
@@ -72,16 +79,16 @@ class WideResNet(nn.Module):
         self.survival_decrease = (1.0 - survival)/(3*n) if survival_mode == 'linear' else 0.0
 
         # Number of planes in each block
-        n_stages = [16, 16 * widen_factor, 32 * widen_factor, 64 * widen_factor]
+        self.n_stages = [16, 16 * widen_factor, 32 * widen_factor, 64 * widen_factor]
         self.in_planes = 16
 
-        self.conv1 = conv3x3(in_planes = 3, out_planes = n_stages[0], stride = 1)        
-        self.layer1 = self._make_layer(n, BasicBlock, n_stages[1], dropout_rate, stride=1, survival=self.survival)
-        self.layer2 = self._make_layer(n, BasicBlock, n_stages[2], dropout_rate, stride=2, survival=self.survival)
-        self.layer3 = self._make_layer(n, BasicBlock, n_stages[3], dropout_rate, stride=2, survival=self.survival)
+        self.conv1 = conv3x3(in_planes = 3, out_planes = self.n_stages[0], stride = 1)        
+        self.layer1 = self._make_layer(n, BasicBlock, self.n_stages[1], dropout_rate, stride=1, survival=self.survival)
+        self.layer2 = self._make_layer(n, BasicBlock, self.n_stages[2], dropout_rate, stride=2, survival=self.survival)
+        self.layer3 = self._make_layer(n, BasicBlock, self.n_stages[3], dropout_rate, stride=2, survival=self.survival)
 
-        self.bn1 = nn.BatchNorm2d(n_stages[3], momentum=0.9)
-        self.linear = nn.Linear(n_stages[3], num_classes)
+        self.bn1 = nn.BatchNorm2d(self.n_stages[3], momentum=0.9)
+        self.linear = nn.Linear(self.n_stages[3], num_classes)
         self.__initialise()
 
     def __initialise(self):
@@ -119,6 +126,25 @@ class WideResNet(nn.Module):
         out = F.avg_pool2d(out, 8)
         out = out.view(out.size(0), -1)
         out = self.linear(out)
+
+        info = {'pred': out}
+        return out, info
+
+
+class DirWideResNet(WideResNet):
+    def __init__(self, depth, widen_factor, dropout_rate, num_classes, survival=1, survival_mode='constant', **kwargs):
+        super(DirWideResNet, self).__init__(depth, widen_factor, dropout_rate, num_classes, survival, survival_mode, **kwargs)
+
+        # Need a softplus function to ensure alphas > 1
+        self.softplus = nn.Softplus(beta = 1, threshold = 20)
+
+    def forward(self, x):
+
+        # Call the parent class forward
+        out, _ = super(DirWideResNet, self).forward(x)
+
+        # And apply softplus
+        out = self.softplus(out)
 
         info = {'pred': out}
         return out, info
@@ -175,6 +201,66 @@ def wideresnet404(**kwargs):
 
 def linearwideresnet404(**kwargs):
     return WideResNet(
+        depth = 40, 
+        widen_factor = 4, 
+        dropout_rate = 0.3, 
+        survival = 0.50,
+        survival_mode = 'linear',
+        **kwargs
+    )
+
+
+def dirwideresnet282(**kwargs):
+    return DirWideResNet(
+        depth = 28, 
+        widen_factor = 2, 
+        dropout_rate = 0.3, 
+        **kwargs
+    )
+
+
+def dirlinearwideresnet282(**kwargs):
+    return DirWideResNet(
+        depth = 28, 
+        widen_factor = 2, 
+        dropout_rate = 0.3, 
+        survival = 0.50, 
+        survival_mode = 'linear',
+        **kwargs
+    )
+
+
+def dirwideresnet2810(**kwargs):
+    return DirWideResNet(
+        depth = 28, 
+        widen_factor = 10, 
+        dropout_rate = 0.3, 
+        **kwargs
+    )
+
+
+def dirlinearwideresnet2810(**kwargs):
+    return DirWideResNet(
+        depth = 28, 
+        widen_factor = 10, 
+        dropout_rate = 0.3, 
+        survival = 0.50, 
+        survival_mode = 'linear',
+        **kwargs
+    )
+
+
+def dirwideresnet404(**kwargs):
+    return DirWideResNet(
+        depth = 40, 
+        widen_factor = 4, 
+        dropout_rate = 0.3, 
+        **kwargs
+    )
+
+
+def dirlinearwideresnet404(**kwargs):
+    return DirWideResNet(
         depth = 40, 
         widen_factor = 4, 
         dropout_rate = 0.3, 

@@ -51,11 +51,15 @@ class UCE(CrossEntropy):
         # Get loss and entropy
         uce, ent = expected_crossentropy_and_entropy(pred_la, y_l)
 
+        # Get final loss
+        loss = uce - self.mu * ent
+
         # Compute accuracy
         acc = accuracy(pred_la.detach().clone(), y_l, top_k = (1, 5))
 
+        # Record metrics
         info = {'metrics': {
-            'loss': uce.item(),
+            'loss': loss.item(),
             'acc1': acc[0].item(),
             'acc5': acc[1].item(),
             'uce': uce.item(),
@@ -63,7 +67,7 @@ class UCE(CrossEntropy):
             'ce': self.ce(pred_la, y_l).item(),
         }}
 
-        return uce - self.mu * ent, info
+        return loss, info
 
     def forward(self, info):
         return self.forward_uce(info)
