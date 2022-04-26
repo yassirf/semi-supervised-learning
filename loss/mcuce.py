@@ -11,8 +11,8 @@ def sample_crossentropy_and_entropy(info, target_labels):
     # Eross-entropy loss function with mean reduction
     ce = nn.CrossEntropyLoss()
     
-    # Get the samples from info and average in log-domain
-    samples = info['samples'].mean()
+    # Get the samples from info and average in log-domain (batch, classes)
+    samples = info['samples'].mean(dim = 0)
 
     # Evaluate loss
     loss = ce(samples, target_labels)
