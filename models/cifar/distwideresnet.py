@@ -43,7 +43,7 @@ class TwoHeadWideResNet(WideResNet):
 
 class GaussianWideResNet(TwoHeadWideResNet):
     def __init__(self, depth, widen_factor, dropout_rate, num_classes, survival=1, survival_mode='constant', scale_fn = 'exp', num_samples=1, **kwargs):
-        super(TwoHeadWideResNet, self).__init__(depth, widen_factor, dropout_rate, num_classes, survival, survival_mode, **kwargs)
+        super(GaussianWideResNet, self).__init__(depth, widen_factor, dropout_rate, num_classes, survival, survival_mode, **kwargs)
 
         # How to parametrise the scale
         self.scale_fn = torch.exp if scale_fn == 'exp' else nn.Softplus(beta = 1, threshold = 20)
@@ -80,7 +80,7 @@ class GaussianWideResNet(TwoHeadWideResNet):
 
 class LaplaceWideResNet(TwoHeadWideResNet):
     def __init__(self, depth, widen_factor, dropout_rate, num_classes, survival=1, survival_mode='constant', scale_fn = 'exp', num_samples=1, **kwargs):
-        super(TwoHeadWideResNet, self).__init__(depth, widen_factor, dropout_rate, num_classes, survival, survival_mode, **kwargs)
+        super(LaplaceWideResNet, self).__init__(depth, widen_factor, dropout_rate, num_classes, survival, survival_mode, **kwargs)
 
         # How to parametrise the scale
         self.scale_fn = torch.exp if scale_fn == 'exp' else nn.Softplus(beta = 1, threshold = 20)
