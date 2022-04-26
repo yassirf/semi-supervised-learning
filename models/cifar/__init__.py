@@ -12,7 +12,7 @@ from .pnwideresnet import radialwideresnet282, radialwideresnet2810, radialwider
 
 from .npnwideresnet import default_iafwideresnet282, default_radialwideresnet282
 from .npnwideresnet import exp_iafwideresnet282, exp_radialwideresnet282
-from .npnwideresnet import half_exp_iafwideresnet282, half_exp_radialwideresnet282
+from .npnwideresnet import halfexp_iafwideresnet282, halfexp_radialwideresnet282
 
 from .distwideresnet import exp_gaussian_wideresnet282, exp_laplace_wideresnet282
 from .distwideresnet import soft_gaussian_wideresnet282, soft_laplace_wideresnet282

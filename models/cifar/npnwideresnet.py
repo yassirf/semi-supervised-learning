@@ -10,8 +10,8 @@ __all__ = [
     'default_radialwideresnet282',
     'exp_iafwideresnet282',
     'exp_radialwideresnet282',
-    'half_exp_iafwideresnet282',
-    'half_exp_radialwideresnet282',
+    'halfexp_iafwideresnet282',
+    'halfexp_radialwideresnet282',
 ]
 
 
@@ -22,7 +22,7 @@ class EvidenceScaler(nn.Module):
         # Mapping from ctype to log-constant
         mapping = {
             'exp': 1.00,
-            'half-exp': 0.50,
+            'halfexp': 0.50,
             'radial': 0.50 * math.log(4 * math.pi),
             'default': 0.50 * math.log(4 * math.pi),
         }
@@ -145,23 +145,23 @@ def exp_radialwideresnet282(latent_dim, flow_length, num_classes, **kwargs):
     )
 
 
-def half_exp_iafwideresnet282(latent_dim, flow_length, num_classes, **kwargs):
+def halfexp_iafwideresnet282(latent_dim, flow_length, num_classes, **kwargs):
     return IAFNaturalPosteriorNetwork(
         backbone = wideresnet282,
         latent_dim = latent_dim,
         flow_length = flow_length,
         num_classes = num_classes, 
-        count_type = 'half-exp',
+        count_type = 'halfexp',
         **kwargs
     )
 
 
-def half_exp_radialwideresnet282(latent_dim, flow_length, num_classes, **kwargs):
+def halfexp_radialwideresnet282(latent_dim, flow_length, num_classes, **kwargs):
     return RadialNaturalPosteriorNetwork(
         backbone = wideresnet282,
         latent_dim = latent_dim,
         flow_length = flow_length,
         num_classes = num_classes, 
-        count_type = 'half-exp',
+        count_type = 'halfexp',
         **kwargs
     )
