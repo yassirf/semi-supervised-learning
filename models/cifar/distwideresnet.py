@@ -101,7 +101,7 @@ class LaplaceWideResNet(TwoHeadWideResNet):
 
         # Sample from gaussian with reparametrisation trick (num, batch, class)
         samples = sampler.rsample(sample_shape = (self.num_samples, ))
-        samples = torch.log_softmax(out, dim = -1)
+        samples = torch.log_softmax(samples, dim = -1)
 
         # Apply averaging in probability space (batch, class)
         pred = torch.logsumexp(samples, dim = 0) - math.log(self.num_samples)
