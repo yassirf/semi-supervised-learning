@@ -13,7 +13,7 @@ __all__ = [
 
 
 class ListFlow(nn.Module):
-    def __init__(self, latent_dim, flow_length):
+    def __init__(self, latent_dim, flow_length, **kwargs):
         super(ListFlow, self).__init__()
 
         # For gaussian prior on flow
@@ -55,8 +55,8 @@ class ListFlow(nn.Module):
 
 class InverseAutoregressiveFlow(ListFlow):
 
-    def __init__(self, latent_dim, flow_length):
-        super(InverseAutoregressiveFlow, self).__init__(latent_dim, flow_length)
+    def __init__(self, latent_dim, flow_length, **kwargs):
+        super(InverseAutoregressiveFlow, self).__init__(latent_dim, flow_length, **kwargs)
 
         # Normalizing flow invertible transformation
         self.transforms = nn.Sequential(*(
@@ -66,8 +66,8 @@ class InverseAutoregressiveFlow(ListFlow):
 
 class RadialFlow(ListFlow):
     
-    def __init__(self, latent_dim, flow_length):
-        super(RadialFlow, self).__init__(latent_dim, flow_length)
+    def __init__(self, latent_dim, flow_length, **kwargs):
+        super(RadialFlow, self).__init__(latent_dim, flow_length, **kwargs)
 
         # Normalizing flow invertible transformation
         self.transforms = nn.Sequential(*(
