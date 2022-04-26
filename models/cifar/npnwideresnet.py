@@ -29,7 +29,7 @@ class EvidenceScaler(nn.Module):
 
         # This determines the log-scale of counts
         # By default we set the scale to 
-        self.log_scale = mapping['ctype'] * dim
+        self.log_scale = mapping[ctype] * dim
 
     def forward(self, log_evidence: torch.Tensor) -> torch.Tensor:
         return self.log_scale + log_evidence
