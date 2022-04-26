@@ -20,10 +20,16 @@ def load_model(args):
 
     model = cifar.__dict__[args.arch]
     model = model(
+        # Base required argument for all models
         num_classes = args.num_classes,
-        # Add additional arguments to the model here if needed
+
+        ### Add additional arguments to the model here if needed
+        # Posterior Network parameters
         latent_dim = args.latent_dim,
         flow_length = args.flow_length,
         counts = load_counts(args),
+
+        # Monte-carlo based UCE training
+        num_samples = args.uce_num_samples,
     )
     return model

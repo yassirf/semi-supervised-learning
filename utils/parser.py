@@ -81,6 +81,7 @@ def get_loss_args(parser):
     parser.add_argument('--meanteacher_i', default=15000, type=int, help='mean-teacher number of ramp-up iterations (default: 30000)')
     parser.add_argument('--mixup_alpha', default=0.0, type=float, help='mixup beta distribution parameters (default: 0.0)')
     parser.add_argument('--uce_mu', default=0.0, type=float, help='uce entropy regularisation constant (default: 0.0)')
+    parser.add_argument('--uce_num_samples', default=1, type=int, help='uce monte-carlo samples at training (default: 1)')
     return parser
 
 def get_arch_spec_args(parser):
