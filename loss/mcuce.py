@@ -18,7 +18,7 @@ def sample_crossentropy_and_entropy(info, target_labels):
     loss = ce(samples, target_labels)
 
     # Evaluate entropy of sampler and sum over all classes
-    entropy = info['sampler'].entropy().sum(-1).mean()
+    entropy = info['distribution'].entropy().sum(-1).mean()
 
     return loss, entropy
 
