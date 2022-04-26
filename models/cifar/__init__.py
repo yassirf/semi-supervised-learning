@@ -10,5 +10,10 @@ from .normalizingflow import InverseAutoregressiveFlow, RadialFlow
 from .pnwideresnet import iafwideresnet282, iafwideresnet2810, iafwideresnet404
 from .pnwideresnet import radialwideresnet282, radialwideresnet2810, radialwideresnet404
 
+from .npnwideresnet import default_iafwideresnet282, default_radialwideresnet282
+from .npnwideresnet import exp_iafwideresnet282, exp_radialwideresnet282
+from .npnwideresnet import half_exp_iafwideresnet282, half_exp_radialwideresnet282
+
 from .distwideresnet import exp_gaussian_wideresnet282, exp_laplace_wideresnet282
 from .distwideresnet import soft_gaussian_wideresnet282, soft_laplace_wideresnet282
+
