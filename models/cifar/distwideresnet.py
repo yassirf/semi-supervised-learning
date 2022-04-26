@@ -27,7 +27,7 @@ class TwoHeadWideResNet(WideResNet):
         x = self.layer3(x)
         x = F.relu(self.bn1(x))
         x = F.avg_pool2d(x, 8)
-        x = out.view(x.size(0), -1)
+        x = x.view(x.size(0), -1)
         
         # Pass through two separate linear layers
         out = self.linear(x)
