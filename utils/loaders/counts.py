@@ -21,12 +21,17 @@ names = {
 # Define model loader
 def load_counts(args):
     """
-    General schedule loader
+    General count loader
     """
-    if args.dataset not in names:
+    device = get_device(gpu = args.gpu)
+
+    if args.dataset.startswith("cifar10-c-"):
+        counts = names['cifar10']
+    elif args.dataset.startswith("cifar100-c-"):
+        counts = names['cifar100']
+    elif args.dataset in names:
+        counts = names[args.dataset]
+    else:
         raise ValueError("The value {} is not one of the valid choices: {}".format(args.dataset, list(names.keys())))
     
-    device = get_device(gpu = args.gpu)
-    counts = names[args.dataset]
-    counts = torch.tensor(counts).to(device)
-    return counts
+    return torch.tensor(counts).to(device)
