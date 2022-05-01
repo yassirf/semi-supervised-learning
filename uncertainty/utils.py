@@ -12,6 +12,7 @@ class UncertaintyStorage(dict):
         self.update(*args, **kwargs)
 
     def __getitem__(self, key):
+        if key not in self: return np.array([])
         val = dict.__getitem__(self, key)
         return val
 
