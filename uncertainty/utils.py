@@ -7,19 +7,21 @@ __all__ = [
     'UncertaintyStorage'
 ]
 
+class UncertaintyStorage(dict):
+    def __init__(self, *args, **kwargs):
+        self.update(*args, **kwargs)
 
-class UncertaintyStorage(Dict):
-    def push(self, dinfo: Dict):
+    def __getitem__(self, key):
+        val = dict.__getitem__(self, key)
+        return val
 
-        import pdb; pdb.set_trace()
+    def __setitem__(self, key, val):
+        dict.__setitem__(self, key, val)
 
-        # Push all values to storage
-        for key, value in dinfo.items():
+    def update(self, *args, **kwargs):
+        for k, v in dict(*args, **kwargs).items():
+            self[k] = v
             
-            # Define keys 
-            if key not in self.__dict__: 
-                self.__dict__[key] = np.array([])
-
-            # Convert tensor to numpy array and concatenate
-            self.__dict__[key] = np.concatenate((self.__dict__[key], value.cpu().detach().numpy()))
-
+    def uconcatenate(self, *args, **kwargs):
+        for k, v in dict(*args, **kwargs).items():
+            self[k] = np.concatenate((self[k], v))
