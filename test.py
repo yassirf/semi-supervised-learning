@@ -118,7 +118,7 @@ def main():
 
     # Checkpointer for loading
     checkpointer = utils.Checkpointer(args, path = args.checkpoint, save_last_n = -1)
-    model.load_state_dict(checkpointer.load()['state_dict'].to(device))
+    model.load_state_dict(checkpointer.load(device)['state_dict'])
 
     # Load uncertainty calculating class
     uncertainty = utils.loaders.load_uncertainty(args)

@@ -79,12 +79,12 @@ class Checkpointer(object):
         self.save_last(i, acc, model, loss, optimiser)
         self.save_best(i, acc, model, loss, optimiser)
     
-    def load(self, filename = "checkpoint_best.pt"):
+    def load(self, device, filename = "checkpoint_best.pt"):
         # For when the argument is None
         path = self.args.load_path or os.path.join(self.path, filename)
 
         # Load checkpoint based on filename
-        ckpt = torch.load(path)
+        ckpt = torch.load(path, map_location=device)
 
         # Update parameters
         self.acc = ckpt['accuracy']
