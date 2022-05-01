@@ -12,7 +12,7 @@ class UncertaintyStorage(dict):
         self.update(*args, **kwargs)
 
     def __getitem__(self, key):
-        if key not in self: return np.array([])
+        if key not in self: return []
         val = dict.__getitem__(self, key)
         return val
 
@@ -21,8 +21,8 @@ class UncertaintyStorage(dict):
 
     def update(self, *args, **kwargs):
         for k, v in dict(*args, **kwargs).items():
-            self[k] = v
+            self[k] = v.detach().cpu().tolist()
             
     def uconcatenate(self, *args, **kwargs):
         for k, v in dict(*args, **kwargs).items():
-            self[k] = np.concatenate((self[k], v))
+            self[k] += v.detach().cpu().tolist()
