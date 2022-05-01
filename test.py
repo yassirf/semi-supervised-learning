@@ -73,8 +73,6 @@ def test(args, logger, device, dataloader, model, uncertainty):
         # Calculate uncertainties
         uncertainty_storage.update(uncertainty(args, info))
 
-        print(time.time()-t0)
-
     # Logging message
     msg = "test\tloss: {loss:.3f} | top1: {top1: .3f} | top5: {top5: .3f} | time {time: .3f}"
     msg = msg.format(loss=losses.avg, top1=top1.avg, top5=top5.avg, time=time.time()-t0)
