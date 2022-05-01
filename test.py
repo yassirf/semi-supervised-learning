@@ -71,11 +71,7 @@ def test(args, logger, device, dataloader, model, uncertainty):
         top5.update(accs[1].item(), x.size(0))
 
         # Calculate uncertainties
-        results = uncertainty(args, info)
-
-        import pdb; pdb.set_trace()
-        
-        uncertainty_storage.push(results)
+        uncertainty_storage.push(uncertainty(args, info))
 
     # Logging message
     msg = "test\tloss: {loss:.3f} | top1: {top1: .3f} | top5: {top5: .3f} | time {time: .3f}"
