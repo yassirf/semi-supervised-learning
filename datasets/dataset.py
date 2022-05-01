@@ -45,6 +45,14 @@ def get_iters(
         # Extract data for custom dataloaders
         x_train, y_train = train_dataset.data, np.array(train_dataset.targets)
         x_test, y_test = test_dataset.data, np.array(test_dataset.targets)
+    elif dataset.startswith('cifar10-c-'):
+        args.num_classes = 10
+        # Corrupted cifar 10 name format: cifar10-c-i-type
+        severity = int(dataset.split("-")[2])
+        dsettype = dataset.split("-")[3]
+        # Extract data for custom dataloaders
+        x_train, y_train = np.load('./data/CIFAR-10-C/{}.npy'.format(dsettype)), np.load('./data/CIFAR-10-C/labels.npy')
+        x_test, y_test = x_train[(severity - 1) * 10000: severity * 10000], y_train[(severity - 1) * 10000: severity * 10000]
     elif dataset == 'cifar100':
         args.num_classes = 100
         # Get datasets from python with automatic downloading
@@ -53,6 +61,14 @@ def get_iters(
         # Extract data for custom dataloaders
         x_train, y_train = train_dataset.data, np.array(train_dataset.targets)
         x_test, y_test = test_dataset.data, np.array(test_dataset.targets)
+    elif dataset.startswith('cifar100-c-'):
+        args.num_classes = 100
+        # Corrupted cifar 100 name format: cifar10-c-i-type
+        severity = int(dataset.split("-")[2])
+        dsettype = dataset.split("-")[3]
+        # Extract data for custom dataloaders
+        x_train, y_train = np.load('./data/CIFAR-100-C/{}.npy'.format(dsettype)), np.load('./data/CIFAR-100-C/labels.npy')
+        x_test, y_test = x_train[(severity - 1) * 10000: severity * 10000], y_train[(severity - 1) * 10000: severity * 10000]
     elif dataset == 'svhn':
         args.num_classes = 10
         # Get datasets from python with automatic downloading
