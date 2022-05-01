@@ -51,7 +51,7 @@ def get_iters(
         severity = int(dataset.split("-")[2])
         dsettype = dataset.split("-")[3]
         # Extract data for custom dataloaders
-        x_train, y_train = np.load('./data/CIFAR-10-C/{}.npy'.format(dsettype)), np.load('./data/CIFAR-10-C/labels.npy')
+        x_train, y_train = np.load('./data/CIFAR-10-C/{}.npy'.format(dsettype)), np.load('./data/CIFAR-10-C/labels.npy').astype(int)
         x_test, y_test = x_train[(severity - 1) * 10000: severity * 10000], y_train[(severity - 1) * 10000: severity * 10000]
     elif dataset == 'cifar100':
         args.num_classes = 100
@@ -67,7 +67,7 @@ def get_iters(
         severity = int(dataset.split("-")[2])
         dsettype = dataset.split("-")[3]
         # Extract data for custom dataloaders
-        x_train, y_train = np.load('./data/CIFAR-100-C/{}.npy'.format(dsettype)), np.load('./data/CIFAR-100-C/labels.npy')
+        x_train, y_train = np.load('./data/CIFAR-100-C/{}.npy'.format(dsettype)), np.load('./data/CIFAR-100-C/labels.npy').astype(int)
         x_test, y_test = x_train[(severity - 1) * 10000: severity * 10000], y_train[(severity - 1) * 10000: severity * 10000]
     elif dataset == 'svhn':
         args.num_classes = 10
