@@ -26,7 +26,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
     best_loss, best_top1, best_top5 = 0.0, 0.0, 0.0
 
     # Checkpointer for saving
-    checkpointer = utils.Checkpointer(path = args.checkpoint, save_last_n = -1)
+    checkpointer = utils.Checkpointer(args, path = args.checkpoint, save_last_n = -1)
 
     # Single training loop measured by number of batches
     for i in range(1, args.iters + 1):

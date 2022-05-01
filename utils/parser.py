@@ -18,8 +18,11 @@ def get_args():
     # Get optimization args
     parser = get_optim_args(parser)
 
-    # Get scheduler argparse
+    # Get scheduler args
     parser = get_schedule_args(parser)
+
+    # Get uncertainty args
+    parser = get_uncertainty_args(parser)
 
     # Format arguments
     return process_args(parser)
@@ -58,6 +61,8 @@ def get_init_args():
     parser.add_argument('--save-every', default=0, type=int, help='save every nth checkpoint (default: 0 — saving at the of training)')
     parser.add_argument('--log-every', default=1000, type=int, help='log after every nth update (default: 1000)')
     parser.add_argument('--val-every', default=None, type=int, help='validate after every nth update (default: None)')
+    parser.add_argument('--load-path', default=None, type=str, help='path to load model (default: None)')
+    parser.add_argument('--out-path', default=None, type=str, help='path to store results (default: None)')
 
     # Miscs
     parser.add_argument('--seed', default=None, type=int, help='manual seed for torch and numpy (default: None)')
@@ -70,25 +75,27 @@ def get_init_args():
 def get_loss_args(parser):
     # Loss arguments
     parser.add_argument('--loss', default='crossentropy', type=str, help='loss type (default: cross_entropy)')
-    parser.add_argument('--vat_alpha', default=1.0, type=float, help='vat loss weighting (default: 1.0)')
-    parser.add_argument('--vat_ent', default=1.0, type=float, help='vat entropy minimisation factor (default: 1.0)')
-    parser.add_argument('--vat_xi', default=1e-6, type=float, help='vat small optimisation direction (default: 1e-8)')
-    parser.add_argument('--vat_eps', default=8.0, type=float, help='vat optimisation size (default: 1.0)')
-    parser.add_argument('--vat_ip', default=1, type=int, help='vat number of power iterations (default: 1)')
-    parser.add_argument('--meanteacher_alpha_ramp', default=0.990, type=float, help='mean-teacher ema parameter during ramp-up (default: 0.990)')
-    parser.add_argument('--meanteacher_alpha', default=0.999, type=float, help='mean-teacher ema parameter after ramp-up (default: 0.999)')
-    parser.add_argument('--meanteacher_w', default=10.00, type=float, help='mean-teacher mixing loss coefficient (default: 10.00)')
-    parser.add_argument('--meanteacher_i', default=15000, type=int, help='mean-teacher number of ramp-up iterations (default: 30000)')
-    parser.add_argument('--mixup_alpha', default=0.0, type=float, help='mixup beta distribution parameters (default: 0.0)')
-    parser.add_argument('--uce_mu', default=0.0, type=float, help='uce entropy regularisation constant (default: 0.0)')
-    parser.add_argument('--uce_num_samples', default=1, type=int, help='uce monte-carlo samples at training (default: 1)')
+    parser.add_argument('--vat-alpha', default=1.0, type=float, help='vat loss weighting (default: 1.0)')
+    parser.add_argument('--vat-ent', default=1.0, type=float, help='vat entropy minimisation factor (default: 1.0)')
+    parser.add_argument('--vat-xi', default=1e-6, type=float, help='vat small optimisation direction (default: 1e-8)')
+    parser.add_argument('--vat-eps', default=8.0, type=float, help='vat optimisation size (default: 1.0)')
+    parser.add_argument('--vat-ip', default=1, type=int, help='vat number of power iterations (default: 1)')
+    parser.add_argument('--meanteacher-alpha-ramp', default=0.990, type=float, help='mean-teacher ema parameter during ramp-up (default: 0.990)')
+    parser.add_argument('--meanteacher-alpha', default=0.999, type=float, help='mean-teacher ema parameter after ramp-up (default: 0.999)')
+    parser.add_argument('--meanteacher-w', default=10.00, type=float, help='mean-teacher mixing loss coefficient (default: 10.00)')
+    parser.add_argument('--meanteacher-i', default=15000, type=int, help='mean-teacher number of ramp-up iterations (default: 30000)')
+    parser.add_argument('--mixup-alpha', default=0.0, type=float, help='mixup beta distribution parameters (default: 0.0)')
+    parser.add_argument('--uce-mu', default=0.0, type=float, help='uce entropy regularisation constant (default: 0.0)')
+    parser.add_argument('--uce-num_samples', default=1, type=int, help='uce monte-carlo samples at training (default: 1)')
     return parser
+
 
 def get_arch_spec_args(parser):
     # Architecture specific parameters  latent_dim, flow_length
-    parser.add_argument('--latent_dim', default=16, type=int, help='dimensionality of latent space (default: 16)')
-    parser.add_argument('--flow_length', default=1, type=int, help='number of normalizing flow layers (default: 1)')
+    parser.add_argument('--latent-dim', default=16, type=int, help='dimensionality of latent space (default: 16)')
+    parser.add_argument('--flow-length', default=1, type=int, help='number of normalizing flow layers (default: 1)')
     return parser
+
 
 def get_optim_args(parser):
     # Optimiser and learning rate
@@ -105,6 +112,14 @@ def get_schedule_args(parser):
     parser.add_argument('--lr-scheduler', default='multistep', type=str, help='type of learning rate schedule (default: multistep)')
     parser.add_argument('--milestones', default=[0.3, 0.6, 0.8], type=float,  nargs='+', help='multisteplr fractional milestones (default: [0.3, 0.6, 0.8])')
     parser.add_argument('--gamma', default=0.2, type=float, help='multisteplr multiplicative decay (default: 0.2)')
+    return parser
+
+
+def get_uncertainty_args(parser):
+    # Uncertainty and temperature scaling
+    parser.add_argument('--uncertainty-name', default='categorical_ensemble', type=str, help='nature of uncertainty (default: categorical_ensemble)')
+    parser.add_argument('--uncertainty-temperature', default=1.0, type=float, help='temperature scaling of logits (default: 1.0)')
+    parser.add_argument('--uncertainty-samples', default=0, type=int, help='number of samples for intractable distributions (default: 0)')
     return parser
 
 
