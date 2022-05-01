@@ -23,8 +23,11 @@ import logging
 
 def reshaper(pred, info):
 
-    # Expand pred if necessary
-    pred = pred if pred.dim() == 3 else pred.unsqueeze(0)
+    # Prediction to be modified as this is used in uncertainty computations
+    ipred = info['pred']
+
+    # Expand the info pred if necessary
+    info['pred'] = ipred if ipred.dim() == 3 else ipred.unsqueeze(0)
 
     return pred, info
 
