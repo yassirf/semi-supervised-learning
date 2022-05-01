@@ -17,13 +17,6 @@ class UncertaintyStorage(Dict):
             if key not in self.storage: 
                 self.__dict__[key] = np.array([])
 
-            # Convert tensor to numpy array
-            value = value.cpu().detach().numpy()
-
-            # Concatenate
-            self.__dict__[key] = np.concatenate((self.__dict__[key], value))
-
-    def write(self, path: str):
-        with open(path, "wb") as file:
-            pickle.dump(self.__dict__, file)
+            # Convert tensor to numpy array and concatenate
+            self.__dict__[key] = np.concatenate((self.__dict__[key], value.cpu().detach().numpy()))
 
