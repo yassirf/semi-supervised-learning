@@ -142,6 +142,8 @@ def main():
     logger.info("Evaluation phase")
     results = test(args, logger, device, data_iters['test'], model, uncertainty)
 
+    import pdb; pdb.set_trace()
+
     # Serializing json 
     json_object = json.dumps(results, indent = 4)
     
