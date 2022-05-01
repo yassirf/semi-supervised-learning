@@ -14,7 +14,7 @@ class UncertaintyStorage(Dict):
         for key, value in dinfo.items():
             
             # Define keys 
-            if key not in self.storage: 
+            if key not in self.__dict__: 
                 self.__dict__[key] = np.array([])
 
             # Convert tensor to numpy array and concatenate
