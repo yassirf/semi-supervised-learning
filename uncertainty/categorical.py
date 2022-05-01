@@ -47,7 +47,7 @@ class EnsembleCategoricals(BaseClass):
         """
 
         # Assert temperature parameter exists
-        temperature = getattr(args, "ood_temperature")
+        temperature = getattr(args, "uncertainty_temperature")
 
         # Combine all outputs into a single tensor (samples, batch, classes)
         outputs = info[key]
