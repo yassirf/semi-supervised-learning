@@ -6,6 +6,7 @@ Yassir Fathullah 2022
 import json
 import copy
 import time
+from regex import P
 import torch
 import torch.nn as nn
 from typing import Dict
@@ -18,6 +19,14 @@ from loss.base import accuracy
 
 # Logger for main training script
 import logging
+
+
+def reshaper(pred, info):
+
+    # Expand pred if necessary
+    pred = pred if pred.dim() == 3 else pred.unsqueeze(0)
+
+    return pred, info
 
 
 @torch.no_grad()
@@ -45,6 +54,9 @@ def test(args, logger, device, dataloader, model, uncertainty):
 
         # Make prediction with model
         pred, info = model(x)
+
+        # Reshape into correct format
+        pred, info = reshaper(pred, info)
 
         # And get metrics
         loss = criterion(pred, y)
