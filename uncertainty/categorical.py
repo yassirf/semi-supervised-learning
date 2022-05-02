@@ -28,8 +28,9 @@ class EnsembleCategoricals(BaseClass):
         return entropy.sum(-1)
 
     def compute_expected_entropy(self, log_probs):
+        # Input of shape (samples, batch, classes)
         entropies = self.compute_entropy(log_probs)
-        return entropies.mean(-1)
+        return entropies.mean(0)
 
     def compute_entropy_expected(self, log_probs):
         return self.compute_entropy(log_probs)
