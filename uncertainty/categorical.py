@@ -1,7 +1,9 @@
+from cProfile import label
 import torch
 import torch.nn as nn
 import numpy as np
 
+from torch import Tensor
 from typing import Dict
 from .base import BaseClass
 
@@ -15,6 +17,10 @@ class EnsembleCategoricals(BaseClass):
         super(EnsembleCategoricals, self).__init__()
 
     @staticmethod
+    def compute_misclassification(log_probs, labels):
+        return log_probs.max(axis = -1).indices != labels
+
+    @staticmethod
     def compute_disagreement(log_probs):
         return 1 - torch.exp(2 * log_probs).sum(-1)
 
@@ -24,7 +30,7 @@ class EnsembleCategoricals(BaseClass):
 
     @staticmethod
     def compute_entropy(log_probs):
-        entropy = - log_probs * torch.exp(log_probs)
+        entropy = - torch.exp(log_probs) * log_probs
         return entropy.sum(-1)
 
     def compute_expected_entropy(self, log_probs):
@@ -42,7 +48,7 @@ class EnsembleCategoricals(BaseClass):
         return entropy
 
     @torch.no_grad()
-    def __call__(self, args, info: Dict, key: str = 'pred') -> Dict:
+    def __call__(self, args, info: Dict, labels: Tensor, key: str = 'pred') -> Dict:
         """
         Computes all default uncertainty metrics
         """
@@ -69,6 +75,7 @@ class EnsembleCategoricals(BaseClass):
         expected = torch.logsumexp(outputs, dim=0) - np.log(n)
 
         returns = {
+            'misclassification': self.compute_misclassification(expected, labels),
             'disagreement': self.compute_disagreement(expected),
             'log_confidence': -self.compute_log_confidence(expected),
             'entropy_expected': self.compute_entropy_expected(expected),

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+from torch import Tensor
 from typing import Dict
 from .categorical import EnsembleCategoricals
 
@@ -21,7 +22,7 @@ class EnsembleDirichlets(EnsembleCategoricals):
         entropy = torch.digamma(alpha0 + 1)
         entropy -= torch.sum(alphas * torch.digamma(alphas + 1), dim=-1) / alpha0
 
-        return entropy.mean(-1)
+        return entropy.mean(0)
 
     @staticmethod
     def compute_reverse_mutual_information(expected, log_alphas):
@@ -33,7 +34,7 @@ class EnsembleDirichlets(EnsembleCategoricals):
         return entropy
 
     @torch.no_grad()
-    def __call__(self, args, info: Dict, key: str = 'pred') -> Dict:
+    def __call__(self, args, info: Dict, labels: Tensor, key: str = 'pred') -> Dict:
         """
         Computes all default uncertainty metrics
         """
@@ -51,6 +52,7 @@ class EnsembleDirichlets(EnsembleCategoricals):
         expected = torch.logsumexp(outputs_lp, dim=0) - np.log(n)
 
         returns = {
+            'misclassification': self.compute_misclassification(expected, labels),
             'disagreement': self.compute_disagreement(expected),
             'log_confidence': -self.compute_log_confidence(expected),
             'entropy_expected': self.compute_entropy_expected(expected),

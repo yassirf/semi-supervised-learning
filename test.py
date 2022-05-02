@@ -71,7 +71,7 @@ def test(args, logger, device, dataloader, model, uncertainty):
         top5.update(accs[1].item(), x.size(0))
 
         # Calculate uncertainties
-        uncertainty_storage.uconcatenate(uncertainty(args, info))
+        uncertainty_storage.uconcatenate(uncertainty(args, info, y))
 
     # Logging message
     msg = "test\tloss: {loss:.3f} | top1: {top1: .3f} | top5: {top5: .3f} | time {time: .3f}"
