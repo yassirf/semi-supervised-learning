@@ -3,6 +3,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision import transforms
+from contextlib import contextmanager
 
 from augment import get_data_transforms
 from .utils import (
@@ -20,7 +21,7 @@ __all__ = [
 
 
 # Setting local seeds
-@contextlib.contextmanager
+@contextmanager
 def temporary_seed(seed):
     state = np.random.get_state()
     np.random.seed(seed)
