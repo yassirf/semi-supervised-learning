@@ -130,7 +130,7 @@ def get_iters(
     if len(unlabelled_idx) == 0: x_unlabelled, y_unlabelled = x_train, y_train
 
     # Force the unlabelled dataset to utilise the full data
-    x_unlabelled, y_unlabelled = x_train, y_train
+    # x_unlabelled, y_unlabelled = x_train, y_train
 
     # Logging dataset sizes
     logger.info("Number of labelled examples:   {}".format(str(len(x_labelled)).rjust(10)))

@@ -149,5 +149,6 @@ def main():
     with open(args.out_path, "w") as outfile:
         outfile.write(json_object)
 
+
 if __name__ == '__main__':
     main()
