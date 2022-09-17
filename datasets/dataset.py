@@ -1,3 +1,4 @@
+import random
 import numpy as np
 from torch.utils.data import DataLoader
 from torchvision import datasets
@@ -18,6 +19,17 @@ __all__ = [
 ]
 
 
+# Setting local seeds
+@contextlib.contextmanager
+def temporary_seed(seed):
+    state = np.random.get_state()
+    np.random.seed(seed)
+    try:
+        yield
+    finally:
+        np.random.set_state(state)
+
+
 def get_iters(
         args,
         dataset = 'cifar10', 
@@ -29,6 +41,7 @@ def get_iters(
         data_transforms = None,
         pseudo_label = None,
         workers = 0, 
+        seed = 0,
     ):
 
     # Load logger
@@ -87,8 +100,12 @@ def get_iters(
     if data_transforms is None:
         data_transforms = get_data_transforms(args)
 
-    # Randomly permute data for split
-    randperm = np.random.permutation(len(x_train))
+    # Setting local random number generator
+    logger.info("Generating a dataset permutation with a local seed = {}".format(seed))
+
+    with temporary_seed(seed):
+        # Randomly permute data for split
+        randperm = np.random.permutation(len(x_train))
 
     # Extract indices for labelled, validation, and unlabelled sets
     labelled_idx   = randperm[:n_labelled]

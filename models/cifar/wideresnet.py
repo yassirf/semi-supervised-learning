@@ -11,6 +11,7 @@ import numpy as np
 
 
 __all__ = [
+    'wideresnet162'
     'wideresnet282',
     'wideresnet2810',
     'wideresnet404',
@@ -148,6 +149,15 @@ class DirWideResNet(WideResNet):
 
         info = {'pred': out}
         return out, info
+
+
+def wideresnet162(**kwargs):
+    return WideResNet(
+        depth = 16, 
+        widen_factor = 2, 
+        dropout_rate = 0.3, 
+        **kwargs
+    )
 
 
 def wideresnet282(**kwargs):
