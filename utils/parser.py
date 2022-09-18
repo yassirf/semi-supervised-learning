@@ -77,6 +77,8 @@ def get_loss_args(parser):
     parser.add_argument('--loss', default='crossentropy', type=str, help='loss type (default: cross_entropy)')
     parser.add_argument('--teacher-path', default=None, type=str, help='path to teacher model in distillation losses (default: None)')
     parser.add_argument('--teacher-arch', default=None, type=str, help='teacher architecture in distillation losses (default: None)')
+    parser.add_argument('--teacher-ratio', default=1.0, type=float, help='knowledge distillation weight (default: 1.0)')
+    parser.add_argument('--temperature', default=1.0, type=float, help='knowledge distillation temperature (default: 1.0)')
     parser.add_argument('--vat-alpha', default=1.0, type=float, help='vat loss weighting (default: 1.0)')
     parser.add_argument('--vat-ent', default=1.0, type=float, help='vat entropy minimisation factor (default: 1.0)')
     parser.add_argument('--vat-xi', default=1e-6, type=float, help='vat small optimisation direction (default: 1e-8)')
