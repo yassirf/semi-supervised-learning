@@ -9,16 +9,19 @@ names = sorted(name for name in cifar.__dict__ if name.islower() and callable(ci
 
 
 # Define model loader
-def load_model(args):
+def load_model(args, attribute = "arch"):
     """
     General model loader
     """
 
-    # Ensure model has been defined and satisfies convention
-    if args.arch not in names:
-        raise ValueError("The value {} is not one of the valid choices: {}".format(args.arch, names))
+    # Extract model architecture
+    arch = getattr(args, attribute, None)
 
-    model = cifar.__dict__[args.arch]
+    # Ensure model has been defined and satisfies convention
+    if arch not in names:
+        raise ValueError("The value {} is not one of the valid choices: {}".format(arch, names))
+
+    model = cifar.__dict__[arch]
     model = model(
         # Base required argument for all models
         num_classes = args.num_classes,
