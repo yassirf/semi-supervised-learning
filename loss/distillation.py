@@ -7,9 +7,11 @@ from torch import linalg as LA
 from .cross_entropy import CrossEntropy
 
 import logging 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
 
 __all__ = ['crossentropy_and_distillation']
 

@@ -46,7 +46,10 @@ def get_iters(
     ):
 
     # Load logger
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)-8s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        level=logging.DEBUG)
     logger = logging.getLogger(__name__)
 
     logger.info("Loading data")
