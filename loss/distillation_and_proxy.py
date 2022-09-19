@@ -44,7 +44,7 @@ def get_negative_log_confidence(target_logits):
     return -logc
 
 
-def rank_confidence_loss(input_scalars, target_logits, regularization_strength):
+def rank_confidence_loss(input_scalars, target_logits, param):
     """
     Computes a spearman rank approximated loss.
     Gradients only propagated through the input scalars.
@@ -54,8 +54,8 @@ def rank_confidence_loss(input_scalars, target_logits, regularization_strength):
     target_scalars = get_negative_log_confidence(target_logits)
 
     # Compute the soft rank correlation score
-    rank1 = soft_rank(input_scalars, regularization_strength=regularization_strength)
-    rank2 = soft_rank(target_scalars, regularization_strength=regularization_strength)
+    rank1 = soft_rank(input_scalars.unsqueeze(0), regularization_strength=param)
+    rank2 = soft_rank(target_scalars.unsqueeze(0), regularization_strength=param)
 
     # Normalize and compute batch spearman
     rank1 = (rank1 - rank1.mean())/rank1.std(unbiased = False)
@@ -63,6 +63,16 @@ def rank_confidence_loss(input_scalars, target_logits, regularization_strength):
 
     spearman_loss = -(rank1 * rank2).mean()
     return spearman_loss
+
+
+def rank_mae_loss(input_scalars, target_logits, param):
+
+    # Get the target scalars (negate since we want uncertainty)
+    target_scalars = get_negative_log_confidence(target_logits)
+
+    # Compute max absolute error loss
+    loss = torch.abs(input_scalars - target_scalars).mean()
+    return loss
 
 
 class DistillationProxy(Distillation):
@@ -74,7 +84,7 @@ class DistillationProxy(Distillation):
         self.proxy_regularization_strength = args.proxy_regularization_strength
 
         # Proxy loss
-        self.proxy_loss = rank_confidence_loss
+        self.proxy_loss = rank_mae_loss
 
     def get_correlation_metrics(self, input_scalars, target_logits):
 
@@ -111,7 +121,7 @@ class DistillationProxy(Distillation):
         proxy = self.proxy_loss(
             input_scalars = pred_info['proxy'], 
             target_logits = teacher_l, 
-            regularization_strength = self.proxy_regularization_strength
+            param = self.proxy_regularization_strength,
         )
 
         # Compute total loss
