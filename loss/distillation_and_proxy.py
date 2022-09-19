@@ -89,10 +89,10 @@ class DistillationProxy(Distillation):
     def get_correlation_metrics(self, input_scalars, target_logits):
 
         target_logits = target_logits.detach().clone()
-        input_scalars = input_scalars.detach().clone()
+        input_scalars = input_scalars.detach().clone().cpu()
 
         # Get the target scalars (negate since we want uncertainty)
-        target_scalars = get_negative_log_confidence(target_logits)
+        target_scalars = get_negative_log_confidence(target_logits).cpu()
 
         # Compute correlations
         spear = scipy.stats.spearmanr(input_scalars, target_scalars)[0]
