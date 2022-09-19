@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import linalg as LA
 
+from .base import accuracy
 from .cross_entropy import CrossEntropy
 
 import logging 
@@ -18,7 +19,7 @@ __all__ = ['crossentropy_and_distillation']
 
 def kl_divergence_loss(input_logits, target_logits, temperature):
     """
-    Takes softmax on both sides and returns MSE loss
+    Computes the temperature annealed kl-divergence
     Gradients only propagated through the input logits.
     """
     input_lsoftmax = F.log_softmax(input_logits/temperature, dim = -1)
@@ -67,41 +68,40 @@ class Distillation(CrossEntropy):
         
         return model
 
-    def forward_distillation(self, info):
-        
-        # Get labelled images
-        x_l = info['x_l']
+    def forward(self, info):
 
-        # The first input is for the student model
+        # Get labelled image and label
+        x_l, y_l = info['x_l'], info['y_l']
+
+        # Perform model forward pass
         pred_l, _ = self.model(x_l)
 
         with torch.no_grad():
             # The second input is for the teacher model
             teacher_l, _ = self.teacher(x_l)
 
-        # Get the loss averaged over batch
+        # Compute ce-loss
+        ce = self.ce(pred_l, y_l)
+
+        # Get the kl-loss averaged over batch
         kd = self.consistency_loss(pred_l, teacher_l, self.distillation_t)
-
-        # Record metrics
-        kdinfo = {'metrics': {'kd': kd.item()}}
-        return kd, kdinfo
-
-    def forward(self, info):
-        # Get the cross-entropy loss and metrics
-        ce, ce_info = super(Distillation, self).forward(info)
-
-        # Get the virtual adverserial training loss
-        kd, _ = self.forward_distillation(info)
 
         # Compute total loss
         loss = (1 - self.distillation_w) * ce + self.distillation_w * kd * self.distillation_t ** 2
 
-        # Record metrics
-        ce_info['metrics']['loss'] = loss.item()
-        ce_info['metrics']['ce']   = ce.item()
-        ce_info['metrics']['kd']   = kd.item()
+        # Compute accuracy
+        acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
 
-        return loss, ce_info
+        # Record metrics
+        linfo = {'metrics': {
+            'loss': loss.item(),
+            'ce': ce.item(),
+            'kd': kd.item(),
+            'acc1': acc[0].item(),
+            'acc5': acc[1].item(),
+        }}
+
+        return loss, linfo
 
 
 def crossentropy_and_distillation(**kwargs):

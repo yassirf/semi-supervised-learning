@@ -17,3 +17,4 @@ from .npnwideresnet import halfexp_iafwideresnet282, halfexp_radialwideresnet282
 from .distwideresnet import exp_gaussian_wideresnet282, exp_laplace_wideresnet282
 from .distwideresnet import soft_gaussian_wideresnet282, soft_laplace_wideresnet282
 
+from .proxywideresnet import proxy_wideresnet162, proxy_wideresnet282
