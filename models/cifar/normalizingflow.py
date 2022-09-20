@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import torch.distributions as tdist
 
-from pyro.distributions.transforms.planar import Planar
-from pyro.distributions.transforms.radial import Radial
-from pyro.distributions.transforms.affine_autoregressive import AffineAutoregressive, affine_autoregressive
+# from pyro.distributions.transforms.planar import Planar
+# from pyro.distributions.transforms.radial import Radial
+# from pyro.distributions.transforms.affine_autoregressive import AffineAutoregressive, affine_autoregressive
 
 __all__ = [
     'InverseAutoregressiveFlow',
