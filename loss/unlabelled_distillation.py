@@ -25,7 +25,7 @@ def kl_divergence_loss(input_logits, target_logits, temperature):
 
 class UnlabelledDistillation(Distillation):
     def __init__(self, args, model, optimiser, scheduler):
-        super(Distillation, self).__init__(args, model, optimiser, scheduler)
+        super(UnlabelledDistillation, self).__init__(args, model, optimiser, scheduler)
 
     def forward(self, info):
 
