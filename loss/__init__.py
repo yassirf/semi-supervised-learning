@@ -9,3 +9,4 @@ from .meanteacher import crossentropy_and_meanteacher
 from .ict import crossentropy_and_ict
 from .uce import uncertainty_crossentropy
 from .mcuce import sample_uncertainty_crossentropy
+from .proxy import proxy_loss
