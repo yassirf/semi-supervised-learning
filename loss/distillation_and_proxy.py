@@ -1,3 +1,4 @@
+import math
 import utils
 import torch
 import torch.nn as nn
@@ -38,41 +39,23 @@ def kl_divergence_loss(input_logits, target_logits, temperature):
     return loss
 
 
-def get_negative_log_confidence(target_logits):
-    logc = torch.log_softmax(target_logits, dim = -1)
-    logc = logc.max(dim = -1).values
-    return -logc
+def get_normalized_entropy(target_logits):
+    k = target_logits.size(-1)
+    logp = torch.log_softmax(target_logits, dim = -1)
+    entropy = -torch.exp(logp) * logp
+    entropy = entropy.sum(-1)
+    return entropy.mean()/math.log(k)
 
 
-def rank_confidence_loss(input_scalars, target_logits, param):
-    """
-    Computes a spearman rank approximated loss.
-    Gradients only propagated through the input scalars.
-    """
+def binary_cross_entropy_loss(input_scalars, target_logits, param):
 
-    # Get the target scalars (negate since we want uncertainty)
-    target_scalars = get_negative_log_confidence(target_logits)
-
-    # Compute the soft rank correlation score
-    rank1 = soft_rank(input_scalars.unsqueeze(0), regularization_strength=param)
-    rank2 = soft_rank(target_scalars.unsqueeze(0), regularization_strength=param)
-
-    # Normalize and compute batch spearman
-    rank1 = (rank1 - rank1.mean())/rank1.std(unbiased = False)
-    rank2 = (rank2 - rank2.mean())/rank2.std(unbiased = False)
-
-    spearman_loss = -(rank1 * rank2).mean()
-    return spearman_loss
-
-
-def rank_mae_loss(input_scalars, target_logits, param):
+    loss = nn.BCELoss()
 
     # Get the target scalars (negate since we want uncertainty)
-    target_scalars = get_negative_log_confidence(target_logits)
+    target_scalars = get_normalized_entropy(target_logits)
 
-    # Compute max absolute error loss
-    loss = torch.abs(input_scalars - target_scalars).mean()
-    return loss
+    # Compute the binary cross entropy loss
+    return nn.BCELoss(input_scalars, target_logits)
 
 
 class DistillationProxy(Distillation):
@@ -84,7 +67,7 @@ class DistillationProxy(Distillation):
         self.proxy_regularization_strength = args.proxy_regularization_strength
 
         # Proxy loss
-        self.proxy_loss = rank_mae_loss
+        self.proxy_loss = binary_cross_entropy_loss
 
     def get_correlation_metrics(self, input_scalars, target_logits):
 
@@ -119,7 +102,7 @@ class DistillationProxy(Distillation):
 
         # Get the proxy-loss 
         proxy = self.proxy_loss(
-            input_scalars = pred_info['proxy'], 
+            input_scalars = torch.sigmoid(pred_info['proxy']), 
             target_logits = teacher_l, 
             param = self.proxy_regularization_strength,
         )
@@ -129,7 +112,7 @@ class DistillationProxy(Distillation):
         loss += proxy * self.proxy_w
 
         # Compute correlation
-        spear, pears = self.get_correlation_metrics(pred_info['proxy'], teacher_l)
+        spear, pears = self.get_correlation_metrics(torch.sigmoid(pred_info['proxy']), teacher_l)
 
         # Compute accuracy
         acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
