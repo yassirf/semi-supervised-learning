@@ -55,7 +55,7 @@ def binary_cross_entropy_loss(input_scalars, target_logits, param):
     target_scalars = get_normalized_entropy(target_logits)
 
     # Compute the binary cross entropy loss
-    return nn.BCELoss(input_scalars, target_scalars)
+    return loss(input_scalars, target_scalars)
 
 
 class DistillationProxy(Distillation):
