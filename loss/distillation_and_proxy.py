@@ -44,7 +44,7 @@ def get_normalized_entropy(target_logits):
     logp = torch.log_softmax(target_logits, dim = -1)
     entropy = -torch.exp(logp) * logp
     entropy = entropy.sum(-1)
-    return entropy.mean()/math.log(k)
+    return entropy/math.log(k)
 
 
 def binary_cross_entropy_loss(input_scalars, target_logits, param):
