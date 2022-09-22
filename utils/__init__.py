@@ -4,3 +4,4 @@ from .checkpoint import *
 from .device import *
 from .parser import *
 from .misc import *
+from .wandb import *

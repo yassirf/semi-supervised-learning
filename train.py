@@ -7,6 +7,7 @@ import copy
 import time
 import torch
 import torch.nn as nn
+import wandb
 
 import datasets
 import utils
@@ -48,6 +49,14 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
             msg  = 'iteration: {}\tlr: {:.5f}\t'.format(str(i).rjust(6), loss.lr)
             for key, value in loss.metrics.items():
                 msg += '{}: {:.3f}\t'.format(key, value.avg)
+            
+            # Log in wandb
+            train_metrics = {key: value.avg for key, value in loss.metrics.items()}
+            wandb.log(train_metrics)
+
+            # Watch the model
+            # wandb.watch(model, log = 'all')
+            
             logger.info(msg)
             loss.reset_metrics()
 
@@ -74,7 +83,15 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
             msg = "test opt\tloss: {loss:.3f} | top1: {top1: .3f} | top5: {top5: .3f}"
             msg = msg.format(loss=best_loss, top1=best_top1, top5=best_top5)
             logger.info(msg)
-    
+            
+            # Log in wandb
+            valid_metrics = {
+                "val-loss": val_loss, 
+                "val_top1": val_top1, 
+                "val_top5": val_top5,
+            }
+            wandb.log(valid_metrics)
+
     # Save last model 
     checkpointer.save(i, 0.0, model, loss, optimiser)
 
@@ -173,6 +190,9 @@ def main():
     logger.info("Creating loss: {}".format(args.loss))
     loss = utils.loaders.load_loss(args, model, optimiser, scheduler)
 
+    # Setup wandb
+    utils.setup_wandb(args, model)
+    
     # Train and test model
     logger.info("Training phase")
     train(args, logger, device, data_iters, model, optimiser, scheduler, loss)
