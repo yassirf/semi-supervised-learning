@@ -8,7 +8,8 @@ from typing import Dict
 from .base import BaseClass
 
 __all__ = [
-    'ensemble_categoricals'
+    'ensemble_categoricals',
+    'ensemble_categoricals_entropy_proxy',
 ]
 
 
@@ -87,5 +88,28 @@ class EnsembleCategoricals(BaseClass):
         return returns
 
 
+class EnsembleCategoricalsEntropyProxy(EnsembleCategoricals):
+    def __init__(self):
+        super(EnsembleCategoricalsEntropyProxy, self).__init__()
+
+    def __call__(self, args, info: Dict, labels: Tensor, key: str = 'proxy') -> Dict:
+
+        # Get the first head predictions
+        returns = super(EnsembleCategoricalsEntropyProxy, self).__call__(args, info, labels, key = 'pred')
+
+        # Get the second head predictions scaled to the correct number
+        outputs = info[key]
+
+        # Ensure these are mapped to sigmoid and scaled
+        outputs = math.log(args.num_classes) * torch.sigmoid(outputs).squeeze(-1)
+
+        # Store all additional results
+        returns['entropy-proxy'] = outputs
+        return returns
+        
+
 def ensemble_categoricals():
     return EnsembleCategoricals()
+
+def ensemble_categoricals_entropy_proxy():
+    return EnsembleCategoricalsEntropyProxy()
