@@ -55,5 +55,5 @@ class UnlabelledDistillation(Distillation):
         }}
         return loss, linfo
 
-def unlabelled_distillation(**kwargs):
+def distillation_unlabelled(**kwargs):
     return UnlabelledDistillation(**kwargs)
