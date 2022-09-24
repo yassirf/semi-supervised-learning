@@ -36,6 +36,7 @@ def get_iters(
         dataset = 'cifar10', 
         n_labelled = 4000, 
         n_valididation = 5000, 
+        n_unlabelled = 0,
         l_batch_size = 32, 
         ul_batch_size = 128, 
         test_batch_size = 256,
@@ -111,10 +112,13 @@ def get_iters(
         # Randomly permute data for split
         randperm = np.random.permutation(len(x_train))
 
+    # get end of data considered, if not all data is to be used (for unlabelled)
+    data_end = n_labelled + n_valididation + n_unlabelled if n_unlabelled else None
+
     # Extract indices for labelled, validation, and unlabelled sets
     labelled_idx   = randperm[:n_labelled]
     validation_idx = randperm[n_labelled:n_labelled + n_valididation]
-    unlabelled_idx = randperm[n_labelled + n_valididation:]
+    unlabelled_idx = randperm[n_labelled + n_valididation:data_end]
 
     # Assign input data
     x_labelled   = x_train[labelled_idx]

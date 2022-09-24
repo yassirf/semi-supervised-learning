@@ -46,12 +46,14 @@ def get_init_args():
 
     parser.add_argument('--train-ul-batch', default=128, type=int, help='train unlabelled batchsize (default: 128)')
     parser.add_argument('--train-ul-augment', default='standard', type=str, help='unlabelled: nature of data augmentation (default: standard)')
-    
+    parser.add_argument('--distil-train-data', default=False, type=bool, help='whether training data should be used for distilation')
+
     parser.add_argument('--test-batch', default=100, type=int, help='test batchsize (default: 100)')
     parser.add_argument('--test-augment', default='none', type=str, help='test: nature of data augmentation (default: none)')
 
-    parser.add_argument('--num-labelled', default=4000, type=int, help='number of labelled examples (default: 4000)')
+    parser.add_argument('--num-labelled',   default=4000, type=int, help='number of labelled examples (default: 4000)')
     parser.add_argument('--num-validation', default=5000, type=int, help='number of validation examples (default: 5000)')
+    parser.add_argument('--num-unlabelled', default=0,    type=int, help='number of unlabelled examples (default: 0 = all)')
 
     # Architecture
     parser.add_argument('--arch', type=str, required=True, help='model architecture')
