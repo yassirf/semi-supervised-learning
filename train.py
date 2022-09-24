@@ -165,6 +165,7 @@ def main():
         dataset = args.dataset,
         n_labelled = args.num_labelled,
         n_valididation = args.num_validation,
+        n_unlabelled = args.num_unlabelled,
         l_batch_size = args.train_l_batch, 
         ul_batch_size = args.train_ul_batch, 
         test_batch_size = args.test_batch, 
