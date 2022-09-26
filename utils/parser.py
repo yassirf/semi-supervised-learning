@@ -120,6 +120,7 @@ def get_schedule_args(parser):
     parser.add_argument('--lr-scheduler', default='multistep', type=str, help='type of learning rate schedule (default: multistep)')
     parser.add_argument('--milestones', default=[0.3, 0.6, 0.8], type=float,  nargs='+', help='multisteplr fractional milestones (default: [0.3, 0.6, 0.8])')
     parser.add_argument('--gamma', default=0.2, type=float, help='multisteplr multiplicative decay (default: 0.2)')
+    parser.add_argument('--track-spear', default=0, type=int, help='tracking spearman rank instead of top1 accuracy for compatible models (default: 0)')
     return parser
 
 

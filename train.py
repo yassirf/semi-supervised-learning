@@ -24,7 +24,8 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
     model.train()
 
     # Best loss and accuracy tracker
-    best_loss, best_top1, best_top5 = 0.0, 0.0, 0.0
+    best_metric_tracker = 0.0
+    best_eval_metric = None
 
     # Checkpointer for saving
     checkpointer = utils.Checkpointer(args, path = args.checkpoint, save_last_n = -1)
@@ -46,17 +47,15 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
         loss(loss_input_info)
 
         if i % args.log_every == 0:
-            msg  = 'iteration: {}\tlr: {:.5f}\t'.format(str(i).rjust(6), loss.lr)
-            for key, value in loss.metrics.items():
-                msg += '{}: {:.3f}\t'.format(key, value.avg)
-            
+
             # Log in wandb
             train_metrics = {key: value.avg for key, value in loss.metrics.items()}
             wandb.log(train_metrics)
 
-            # Watch the model
-            # wandb.watch(model, log = 'all')
-            
+            msg  = 'iteration: {}\tlr: {:.5f}\t'.format(str(i).rjust(6), loss.lr)
+            for key, value in loss.metrics.items():
+                msg += '{}: {:.3f}\t'.format(key, value.avg)
+
             logger.info(msg)
             loss.reset_metrics()
 
@@ -68,72 +67,56 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
             valmodel.load_state_dict(loss.get_validation_model().state_dict())
 
             # Run validation set with a copied model
-            val_loss, val_top1, val_top5 = test(args, logger, device, data_iterators['val'], valmodel)
+            eval_metrics = test(args, logger, device, data_iterators['val'], valmodel, loss)
+            eval_metrics = {key: value.avg for key, value in eval_metrics.items()}
+
+            # Best metric tracker
+            metric_tracker = eval_metrics['top1'] if not args.track_spear else eval_metrics['spear']
+            if metric_tracker > best_metric_tracker:
+                best_metric_tracker = metric_tracker
+                best_eval_metric = eval_metrics
 
             # Save model checkpoint
-            checkpointer.save(i, val_top1, model, loss, optimiser)
+            checkpointer.save(i, metric_tracker, model, loss, optimiser)
 
-            # Update best metrics
-            if val_top1 > best_top1:
-                best_loss = val_loss
-                best_top1 = val_top1
-                best_top5 = val_top5
-
-            # Logging validation 
-            msg = "test opt\tloss: {loss:.3f} | top1: {top1: .3f} | top5: {top5: .3f}"
-            msg = msg.format(loss=best_loss, top1=best_top1, top5=best_top5)
-            logger.info(msg)
-            
             # Log in wandb
-            valid_metrics = {
-                "val-loss": val_loss, 
-                "val_top1": val_top1, 
-                "val_top5": val_top5,
-            }
-            wandb.log(valid_metrics)
+            wandb.log(eval_metrics)
+
+            # Log in standard output
+            msg = 'test     ||| '
+            for key, value in eval_metrics.items():
+                msg += '{}: {:.3f}\t'.format(key, value)
+            logger.info(msg)
+
+            msg = 'test opt ||| '
+            for key, value in best_eval_metric.items():
+                msg += '{}: {:.3f}\t'.format(key, value)
+            logger.info(msg)
+            loss.reset_eval_metrics()
 
     # Save last model 
     checkpointer.save(i, 0.0, model, loss, optimiser)
 
 
 @torch.no_grad()
-def test(args, logger, device, dataloader, model):
+def test(args, logger, device, dataloader, model, loss):
 
     # Set model into evaluation mode
     model.eval()
-
-    # Evaluation trackers
-    criterion = nn.CrossEntropyLoss()
-
-    losses = AverageMeter()
-    top1 = AverageMeter()
-    top5 = AverageMeter()
 
     t0 = time.time()
     # Single testing loop
     for x, y in dataloader:
 
-        # Move to cuda if being used
-        x, y = x.to(device), y.to(device)
+        # Initialise input to loss and move to device
+        loss_input_info = {}
+        loss_input_info['x_l'] = x.to(device)
+        loss_input_info['y_l'] = y.to(device)
 
         # Make prediction with model
-        pred, _ = model(x)
+        loss(loss_input_info, valmodel = model, batch_size = x.size(0), evaluation = True)
 
-        # And get metrics
-        loss = criterion(pred, y)
-        accs = accuracy(pred.detach().clone(), y, top_k = (1, 5))
-
-        # Update trackers
-        losses.update(loss.data.item(), x.size(0))
-        top1.update(accs[0].item(), x.size(0))
-        top5.update(accs[1].item(), x.size(0))
-
-    # Logging message
-    msg = "test\tloss: {loss:.3f} | top1: {top1: .3f} | top5: {top5: .3f} | time {time: .3f}"
-    msg = msg.format(loss=losses.avg, top1=top1.avg, top5=top5.avg, time=time.time()-t0)
-    logger.info(msg)
-
-    return losses.avg, top1.avg, top5.avg
+    return loss.eval_metrics
 
 
 def main():
@@ -199,7 +182,7 @@ def main():
     train(args, logger, device, data_iters, model, optimiser, scheduler, loss)
 
     logger.info("Evaluation phase")
-    test(args, logger, device, data_iters['test'], model)
+    test(args, logger, device, data_iters['test'], model, loss)
 
 
 if __name__ == '__main__':

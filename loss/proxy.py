@@ -104,6 +104,40 @@ class DistillationProxy(Distillation):
 
         return loss, linfo
 
+    @torch.no_grad()
+    def eval_forward(self, info):
+        
+        # Get labelled image and label
+        x_l, y_l = info['x_l'], info['y_l']
+
+        # Perform model forward pass and get the prediction info dictionary
+        _, pred_info = self.valmodel(x_l)
+
+        # The second input is for the teacher model
+        teacher_l, _ = self.teacher(x_l)
+
+        # Get the proxy-loss 
+        proxy = self.proxy_loss(
+            input_scalars = torch.sigmoid(pred_info['proxy']), 
+            target_logits = teacher_l, 
+            param = self.proxy_regularization_strength,
+        )
+
+        # Compute total loss
+        loss = proxy * self.proxy_w
+
+        # Compute correlation
+        spear, pears = self.get_correlation_metrics(torch.sigmoid(pred_info['proxy']), teacher_l)
+
+        # Record metrics
+        linfo = {'metrics': {
+            'loss': loss.item(),
+            'proxy': proxy.item(),
+            'spear': spear,
+            'pears': pears,
+        }}
+
+        return loss, linfo
 
 
 def proxy_loss(**kwargs):

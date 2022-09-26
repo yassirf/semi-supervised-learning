@@ -131,6 +131,54 @@ class DistillationProxy(Distillation):
 
         return loss, linfo
 
+    @torch.no_grad()
+    def eval_forward(self, info):
+        
+        # Get labelled image and label
+        x_l, y_l = info['x_l'], info['y_l']
+
+        # Perform model forward pass and get the prediction info dictionary
+        pred_l, pred_info = self.valmodel(x_l)
+
+        # The second input is for the teacher model
+        teacher_l, _ = self.teacher(x_l)
+
+        # Compute ce-loss
+        ce = self.ce(pred_l, y_l)
+
+        # Get the kl-loss averaged over batch
+        kd = self.consistency_loss(pred_l, teacher_l, self.distillation_t)
+
+        # Get the proxy-loss 
+        proxy = self.proxy_loss(
+            input_scalars = torch.sigmoid(pred_info['proxy']), 
+            target_logits = teacher_l, 
+            param = self.proxy_regularization_strength,
+        )
+
+        # Compute total loss
+        loss = (1 - self.distillation_w) * ce + self.distillation_w * kd * self.distillation_t ** 2
+        loss += proxy * self.proxy_w
+
+        # Compute correlation
+        spear, pears = self.get_correlation_metrics(torch.sigmoid(pred_info['proxy']), teacher_l)
+
+        # Compute accuracy
+        acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
+
+        # Record metrics
+        linfo = {'metrics': {
+            'loss': loss.item(),
+            'ce': ce.item(),
+            'kd': kd.item(),
+            'proxy': proxy.item(),
+            'spear': spear,
+            'pears': pears,
+            'acc1': acc[0].item(),
+            'acc5': acc[1].item(),
+        }}
+
+        return loss, linfo
 
 
 def crossentropy_and_distillation_and_proxy(**kwargs):

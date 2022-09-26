@@ -66,6 +66,41 @@ class UnlabelledDistillation(Distillation):
 
         return loss, linfo
 
+    @torch.no_grad()
+    def eval_forward(self, info):
+        
+        # Get labelled image and label
+        x_l, y_l = info['x_l'], info['y_l']
+
+        # Perform model forward pass
+        pred_l, _ = self.valmodel(x_l)
+
+        # The second input is for the teacher model
+        teacher_l, _ = self.teacher(x_l)
+
+        # Compute ce-loss
+        ce = self.ce(pred_l, y_l)
+
+        # Get the kl-loss averaged over batch
+        kd = self.consistency_loss(pred_l, teacher_l, self.distillation_t)
+
+        # Compute total loss
+        loss = (1 - self.distillation_w) * ce + self.distillation_w * kd * self.distillation_t ** 2
+
+        # Compute accuracy
+        acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
+
+        # Record metrics
+        linfo = {'metrics': {
+            'loss': loss.item(),
+            'ce': ce.item(),
+            'kd': kd.item(),
+            'acc1': acc[0].item(),
+            'acc5': acc[1].item(),
+        }}
+
+        return loss, linfo
+
 
 def crossentropy_and_unlabelled_distillation(**kwargs):
     return UnlabelledDistillation(**kwargs)

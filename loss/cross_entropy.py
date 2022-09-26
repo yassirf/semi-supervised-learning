@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 from .base import BaseLoss
@@ -36,6 +37,29 @@ class CrossEntropy(BaseLoss):
 
         return loss, linfo
 
+    @torch.no_grad()
+    def eval_forward(self, info):
+
+        # Get labelled image and label
+        x_l, y_l = info['x_l'], info['y_l']
+
+        # Perform model forward pass
+        pred_l, _ = self.valmodel(x_l)
+
+        # Compute loss
+        loss = self.ce(pred_l, y_l)
+
+        # Compute accuracy
+        acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
+
+        # Record metrics
+        linfo = {'metrics': {
+            'loss': loss.item(),
+            'acc1': acc[0].item(),
+            'acc5': acc[1].item(),
+        }}
+
+        return loss, linfo
 
 def crossentropy(**kwargs):
     return CrossEntropy(**kwargs)

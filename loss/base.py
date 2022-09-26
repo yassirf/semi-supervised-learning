@@ -33,6 +33,7 @@ class BaseLoss(object):
         self.optimiser = optimiser
         self.scheduler = scheduler
         self.metrics = {}
+        self.eval_metrics = {}
 
         # Get the device
         self.device = utils.get_device(gpu = args.gpu)
@@ -46,12 +47,20 @@ class BaseLoss(object):
     def reset_metrics(self):
         for key in self.metrics:
             self.metrics[key].reset()
+    
+    def reset_eval_metrics(self):
+        for key in self.metrics:
+            self.eval_metrics[key].reset()
 
-    def record_metrics(self, batch_metrics, batch_size = 1):
+    def record_metrics(self, batch_metrics, batch_size = 1, evaluation = False):
+
+        # Set the metric depending on 
+        metric_dict = self.eval_metrics if evaluation else self.metrics
+
         for key, value in batch_metrics.items():
-            if key not in self.metrics:
-                self.metrics[key] = AverageMeter()
-            self.metrics[key].update(value, batch_size)
+            if key not in metric_dict:
+                metric_dict[key] = AverageMeter()
+            metric_dict[key].update(value, batch_size)
 
     def get_validation_model(self):
         return self.model
@@ -70,16 +79,33 @@ class BaseLoss(object):
         raise NotImplementedError
 
     @torch.no_grad()
-    def eval_forward(self, info, batch_size = 1):
+    def eval_forward(self, info):
+        raise NotImplementedError
 
-        # Get the loss based on model predictions in info
-        _, linfo = self.forward(info)
+    def __call__(self, info, valmodel = None, batch_size = 1, evaluation = False):
 
-        # Record the losses in linfo
-        self.record_metrics(linfo['metrics'], batch_size = batch_size)
+        if evaluation:
 
-    def __call__(self, info, batch_size = 1):
+            assert valmodel is not None
+            # Set the valmodel and in evaluation mode
+            self.valmodel = valmodel
+            self.valmodel.eval()
 
+            # Set the teacher in evaluation mode
+            if hasattr(self, "teacher"):
+                self.teacher.eval()
+
+            # Get the loss based on model predictions in info
+            _, linfo = self.eval_forward(info)
+
+            # Set the teacher in training mode
+            if hasattr(self, "teacher"):
+                self.teacher.train()
+
+            # Record the losses in linfo
+            self.record_metrics(linfo['metrics'], batch_size = batch_size, evaluation = True)
+            return 
+        
         # Reset optimiser first
         self.reset_optimiser()
 
