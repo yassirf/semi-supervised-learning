@@ -70,7 +70,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
             eval_metrics = test(args, logger, device, data_iterators['val'], valmodel, loss)
 
             # Best metric tracker
-            metric_tracker = eval_metrics['val-top1'] if not args.track_spear else eval_metrics['val-spear']
+            metric_tracker = eval_metrics['val-acc1'] if not args.track_spear else eval_metrics['val-spear']
             if metric_tracker > best_metric_tracker:
                 best_metric_tracker = metric_tracker
                 best_eval_metric = eval_metrics
