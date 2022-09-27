@@ -103,7 +103,7 @@ class UnlabelledDistillationProxyEntropyMSE(DistillationProxyEntropyMSE):
         loss = kd * self.distillation_t ** 2 + proxy * self.proxy_w
 
         # Compute correlation
-        spear, pears = self.get_correlation_metrics(pred_l, teacher_l)
+        spear, pears = self.get_correlation_metrics(pred_ul, teacher_ul)
 
         # Record metrics
         linfo = {'metrics': {
