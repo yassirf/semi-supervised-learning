@@ -14,7 +14,16 @@ logging.basicConfig(
     level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-__all__ = ['crossentropy_and_distillation']
+__all__ = [
+    'crossentropy_and_distillation'
+]
+
+
+def get_entropy(logits):
+    logp = torch.log_softmax(logits, dim = -1)
+    entropy = -torch.exp(logp) * logp
+    entropy = entropy.sum(-1)
+    return entropy
 
 
 def kl_divergence_loss(input_logits, target_logits, temperature):
@@ -68,6 +77,20 @@ class Distillation(CrossEntropy):
         
         return model
 
+    def get_correlation_metrics(self, input_logits, target_logits):
+
+        target_logits = target_logits.detach().clone()
+        input_logits = input_logits.detach().clone()
+
+        # Get the target scalars (negate since we want uncertainty)
+        target_scalars = get_entropy(target_logits).cpu()
+        input_scalars = get_entropy(input_logits).cpu()
+
+        # Compute correlations
+        spear = scipy.stats.spearmanr(input_scalars, target_scalars)[0]
+        pears = scipy.stats.pearsonr(input_scalars, target_scalars)[0]
+        return spear, pears
+
     def forward(self, info):
 
         # Get labelled image and label
@@ -92,11 +115,16 @@ class Distillation(CrossEntropy):
         # Compute accuracy
         acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
 
+        # Compute correlation
+        spear, pears = self.get_correlation_metrics(pred_l, teacher_l)
+
         # Record metrics
         linfo = {'metrics': {
             'loss': loss.item(),
             'ce': ce.item(),
             'kd': kd.item(),
+            'spear': spear,
+            'pears': pears,
             'acc1': acc[0].item(),
             'acc5': acc[1].item(),
         }}
@@ -110,7 +138,7 @@ class Distillation(CrossEntropy):
         x_l, y_l = info['x_l'], info['y_l']
 
         # Perform model forward pass
-        pred_l, _ = self.valmodel(x_l)
+        pred_l, _ = self.model(x_l)
 
         # The second input is for the teacher model
         teacher_l, _ = self.teacher(x_l)
@@ -127,18 +155,21 @@ class Distillation(CrossEntropy):
         # Compute accuracy
         acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
 
+        # Compute correlation
+        spear, pears = self.get_correlation_metrics(pred_l, teacher_l)
+
         # Record metrics
         linfo = {'metrics': {
             'loss': loss.item(),
             'ce': ce.item(),
             'kd': kd.item(),
+            'spear': spear,
+            'pears': pears,
             'acc1': acc[0].item(),
             'acc5': acc[1].item(),
         }}
 
         return loss, linfo
-
-
 
 def crossentropy_and_distillation(**kwargs):
     return Distillation(**kwargs)

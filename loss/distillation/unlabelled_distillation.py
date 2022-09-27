@@ -6,21 +6,12 @@ from torch import linalg as LA
 
 from loss.base import accuracy
 from loss.distillation.distillation import Distillation
+from loss.distillation.distillation import kl_divergence_loss
 
-__all__ = ['crossentropy_and_unlabelled_distillation']
 
-
-def kl_divergence_loss(input_logits, target_logits, temperature):
-    """
-    Computes the temperature annealed kl-divergence
-    Gradients only propagated through the input logits.
-    """
-    input_lsoftmax = F.log_softmax(input_logits/temperature, dim = -1)
-    target_lsoftmax = F.log_softmax(target_logits/temperature, dim = -1)
-
-    loss = torch.exp(target_lsoftmax) * (target_lsoftmax - input_lsoftmax)
-    loss = (loss.sum(-1)).mean()
-    return loss
+__all__ = [
+    'crossentropy_and_unlabelled_distillation'
+]
 
 
 class UnlabelledDistillation(Distillation):
@@ -31,8 +22,8 @@ class UnlabelledDistillation(Distillation):
 
         # Get labelled image and label
         x_l, y_l = info['x_l'], info['y_l']
-
-        # Get unlabelled batch
+        
+        # Get unlabelled image 
         x_ul = info['x_ul']
 
         # Perform model forward pass
@@ -55,46 +46,16 @@ class UnlabelledDistillation(Distillation):
         # Compute accuracy
         acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
 
-        # Record metrics
-        linfo = {'metrics': {
-            'loss': loss.item(),
-            'ce': ce.item(),
-            'kd': kd.item(),
-            'acc1': acc[0].item(),
-            'acc5': acc[1].item(),
-        }}
-
-        return loss, linfo
-
-    @torch.no_grad()
-    def eval_forward(self, info):
-        
-        # Get labelled image and label
-        x_l, y_l = info['x_l'], info['y_l']
-
-        # Perform model forward pass
-        pred_l, _ = self.valmodel(x_l)
-
-        # The second input is for the teacher model
-        teacher_l, _ = self.teacher(x_l)
-
-        # Compute ce-loss
-        ce = self.ce(pred_l, y_l)
-
-        # Get the kl-loss averaged over batch
-        kd = self.consistency_loss(pred_l, teacher_l, self.distillation_t)
-
-        # Compute total loss
-        loss = (1 - self.distillation_w) * ce + self.distillation_w * kd * self.distillation_t ** 2
-
-        # Compute accuracy
-        acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
+        # Compute correlation
+        spear, pears = self.get_correlation_metrics(pred_ul, teacher_ul)
 
         # Record metrics
         linfo = {'metrics': {
             'loss': loss.item(),
             'ce': ce.item(),
             'kd': kd.item(),
+            'spear': spear,
+            'pears': pears,
             'acc1': acc[0].item(),
             'acc5': acc[1].item(),
         }}
