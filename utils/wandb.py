@@ -10,13 +10,12 @@ def setup_wandb(args, model):
 
     # Get architecture and version number
     arch, version = modelname.split('-v')
-
+    
     wandb.init(
         entity = 'mg-speech-group',
         project = 'proxy-uncertainty-{}'.format(dataset),
         name = modelname,
         group = arch,
-        dir = args.checkpoint,
     )
 
     wandb.config = {

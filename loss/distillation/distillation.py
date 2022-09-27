@@ -140,7 +140,7 @@ class Distillation(CrossEntropy):
         x_l, y_l = info['x_l'], info['y_l']
 
         # Perform model forward pass
-        pred_l, _ = self.model(x_l)
+        pred_l, _ = self.valmodel(x_l)
 
         # The second input is for the teacher model
         teacher_l, _ = self.teacher(x_l)
