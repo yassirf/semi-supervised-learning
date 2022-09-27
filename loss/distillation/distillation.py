@@ -2,6 +2,8 @@ import utils
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import scipy
+
 from torch import linalg as LA
 
 from loss.base import accuracy
