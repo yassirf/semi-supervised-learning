@@ -4,8 +4,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import linalg as LA
 
-from .base import accuracy
-from .distillation import Distillation, kl_divergence_loss
+from loss.base import accuracy
+from loss.distillation.distillation import Distillation, kl_divergence_loss
 
 __all__ = ['unlabelled_distillation']
 

@@ -12,9 +12,9 @@ from fast_soft_sort.pytorch_ops import soft_rank, soft_sort
 import scipy
 import scipy.stats
 
-from .base import accuracy
-from .cross_entropy import CrossEntropy
-from .distillation import Distillation
+from loss.base import accuracy
+from loss.cross_entropy import CrossEntropy
+from loss.distillation.distillation import Distillation
 
 import logging 
 logging.basicConfig(
