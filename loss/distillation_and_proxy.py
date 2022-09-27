@@ -326,8 +326,6 @@ class DistillationProxyEntropyMSE(Distillation):
         return loss, linfo
 
 
-
-
 def crossentropy_and_distillation_and_proxy(**kwargs):
     return DistillationProxy(**kwargs)
 
