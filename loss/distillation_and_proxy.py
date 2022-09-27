@@ -58,6 +58,24 @@ def binary_cross_entropy_loss(input_scalars, target_logits, param):
     return loss(input_scalars, target_scalars)
 
 
+def get_entropy(logits):
+    logp = torch.log_softmax(logits, dim = -1)
+    entropy = -torch.exp(logp) * logp
+    entropy = entropy.sum(-1)
+    return entropy
+
+
+def mean_squared_error_loss(input_logits, target_logits, param):
+
+    # Get the target scalars (negate since we want uncertainty)
+    target_scalars = get_entropy(target_logits)
+    input_scalars = get_entropy(input_logits)
+
+    # Compute the binary cross entropy loss
+    # return ((target_scalars - input_scalars) ** 2).mean()
+    return (torch.abs(target_scalars - input_scalars)).mean()
+
+
 class DistillationProxy(Distillation):
     def __init__(self, args, model, optimiser, scheduler):
         super(DistillationProxy, self).__init__(args, model, optimiser, scheduler)
@@ -181,5 +199,135 @@ class DistillationProxy(Distillation):
         return loss, linfo
 
 
+class DistillationProxyEntropyMSE(Distillation):
+    def __init__(self, args, model, optimiser, scheduler):
+        super(DistillationProxyEntropyMSE, self).__init__(args, model, optimiser, scheduler)
+
+        # Get proxy loss weight and regularization strength for differentiable rank losses
+        self.proxy_w = args.proxy_weight
+        self.proxy_regularization_strength = args.proxy_regularization_strength
+
+        # Proxy loss
+        self.proxy_loss = mean_squared_error_loss
+
+    def get_correlation_metrics(self, input_logits, target_logits):
+
+        target_logits = target_logits.detach().clone()
+        input_logits = input_logits.detach().clone()
+
+        # Get the target scalars (negate since we want uncertainty)
+        target_scalars = get_entropy(target_logits).cpu()
+        input_scalars = get_entropy(input_logits).cpu()
+
+        # Compute correlations
+        spear = scipy.stats.spearmanr(input_scalars, target_scalars)[0]
+        pears = scipy.stats.pearsonr(input_scalars, target_scalars)[0]
+        return spear, pears
+
+    def forward(self, info):
+
+        # Get labelled image and label
+        x_l, y_l = info['x_l'], info['y_l']
+
+        # Perform model forward pass and get the prediction info dictionary
+        pred_l, _ = self.model(x_l)
+
+        with torch.no_grad():
+            # The second input is for the teacher model
+            teacher_l, _ = self.teacher(x_l)
+
+        # Compute ce-loss
+        ce = self.ce(pred_l, y_l)
+
+        # Get the kl-loss averaged over batch
+        kd = self.consistency_loss(pred_l, teacher_l, self.distillation_t)
+
+        # Get the proxy-loss 
+        proxy = self.proxy_loss(
+            input_logits = pred_l, 
+            target_logits = teacher_l, 
+            param = self.proxy_regularization_strength,
+        )
+
+        # Compute total loss
+        loss = (1 - self.distillation_w) * ce + self.distillation_w * kd * self.distillation_t ** 2
+        loss += proxy * self.proxy_w
+
+        # Compute correlation
+        spear, pears = self.get_correlation_metrics(pred_l, teacher_l)
+
+        # Compute accuracy
+        acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
+
+        # Record metrics
+        linfo = {'metrics': {
+            'loss': loss.item(),
+            'ce': ce.item(),
+            'kd': kd.item(),
+            'proxy': proxy.item(),
+            'spear': spear,
+            'pears': pears,
+            'acc1': acc[0].item(),
+            'acc5': acc[1].item(),
+        }}
+
+        return loss, linfo
+
+    @torch.no_grad()
+    def eval_forward(self, info):
+        
+        # Get labelled image and label
+        x_l, y_l = info['x_l'], info['y_l']
+
+        # Perform model forward pass and get the prediction info dictionary
+        pred_l, _ = self.valmodel(x_l)
+
+        # The second input is for the teacher model
+        teacher_l, _ = self.teacher(x_l)
+
+        # Compute ce-loss
+        ce = self.ce(pred_l, y_l)
+
+        # Get the kl-loss averaged over batch
+        kd = self.consistency_loss(pred_l, teacher_l, self.distillation_t)
+
+        # Get the proxy-loss 
+        proxy = self.proxy_loss(
+            input_logits = pred_l, 
+            target_logits = teacher_l, 
+            param = self.proxy_regularization_strength,
+        )
+
+        # Compute total loss
+        loss = (1 - self.distillation_w) * ce + self.distillation_w * kd * self.distillation_t ** 2
+        loss += proxy * self.proxy_w
+
+        # Compute correlation
+        spear, pears = self.get_correlation_metrics(pred_l, teacher_l)
+
+        # Compute accuracy
+        acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
+
+        # Record metrics
+        linfo = {'metrics': {
+            'loss': loss.item(),
+            'ce': ce.item(),
+            'kd': kd.item(),
+            'proxy': proxy.item(),
+            'spear': spear,
+            'pears': pears,
+            'acc1': acc[0].item(),
+            'acc5': acc[1].item(),
+        }}
+
+        return loss, linfo
+
+
+
+
 def crossentropy_and_distillation_and_proxy(**kwargs):
     return DistillationProxy(**kwargs)
+
+
+def crossentropy_and_distillation_and_proxy_entropy_mse(**kwargs):
+    return DistillationProxyEntropyMSE(**kwargs)

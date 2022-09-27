@@ -24,7 +24,7 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
     model.train()
 
     # Best loss and accuracy tracker
-    best_metric_tracker = 0.0
+    best_metric_tracker = -1.0
     best_eval_metric = None
 
     # Checkpointer for saving
@@ -68,10 +68,9 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
 
             # Run validation set with a copied model
             eval_metrics = test(args, logger, device, data_iterators['val'], valmodel, loss)
-            eval_metrics = {key: value.avg for key, value in eval_metrics.items()}
 
             # Best metric tracker
-            metric_tracker = eval_metrics['top1'] if not args.track_spear else eval_metrics['spear']
+            metric_tracker = eval_metrics['val-top1'] if not args.track_spear else eval_metrics['val-spear']
             if metric_tracker > best_metric_tracker:
                 best_metric_tracker = metric_tracker
                 best_eval_metric = eval_metrics
@@ -92,7 +91,6 @@ def train(args, logger, device, data_iterators, model, optimiser, scheduler, los
             for key, value in best_eval_metric.items():
                 msg += '{}: {:.3f}\t'.format(key, value)
             logger.info(msg)
-            loss.reset_eval_metrics()
 
     # Save last model 
     checkpointer.save(i, 0.0, model, loss, optimiser)
@@ -116,7 +114,10 @@ def test(args, logger, device, dataloader, model, loss):
         # Make prediction with model
         loss(loss_input_info, valmodel = model, batch_size = x.size(0), evaluation = True)
 
-    return loss.eval_metrics
+    eval_metrics = loss.eval_metrics
+    eval_metrics = {key: value.avg for key, value in eval_metrics.items()}
+    loss.reset_eval_metrics()
+    return eval_metrics
 
 
 def main():

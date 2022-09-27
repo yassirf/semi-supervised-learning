@@ -26,23 +26,20 @@ logger = logging.getLogger(__name__)
 __all__ = ['proxy_loss']
 
 
-def get_normalized_entropy(target_logits):
-    k = target_logits.size(-1)
+def get_entropy(target_logits):
     logp = torch.log_softmax(target_logits, dim = -1)
     entropy = -torch.exp(logp) * logp
     entropy = entropy.sum(-1)
-    return entropy/math.log(k)
+    return entropy
 
 
-def binary_cross_entropy_loss(input_scalars, target_logits, param):
-
-    loss = nn.BCELoss()
+def mean_absolute_error_loss(input_scalars, target_logits, param):
 
     # Get the target scalars (negate since we want uncertainty)
-    target_scalars = get_normalized_entropy(target_logits)
+    target_scalars = get_entropy(target_logits)
 
-    # Compute the binary cross entropy loss
-    return loss(input_scalars, target_scalars)
+    # Compute the mae loss
+    return (torch.abs(target_scalars - input_scalars)).mean()
 
 
 class DistillationProxy(Distillation):
@@ -54,7 +51,7 @@ class DistillationProxy(Distillation):
         self.proxy_regularization_strength = args.proxy_regularization_strength
 
         # Proxy loss
-        self.proxy_loss = binary_cross_entropy_loss
+        self.proxy_loss = mean_absolute_error_loss
 
     def get_correlation_metrics(self, input_scalars, target_logits):
 
@@ -62,7 +59,7 @@ class DistillationProxy(Distillation):
         input_scalars = input_scalars.detach().clone().cpu()
 
         # Get the target scalars (negate since we want uncertainty)
-        target_scalars = get_normalized_entropy(target_logits).cpu()
+        target_scalars = get_entropy(target_logits).cpu()
 
         # Compute correlations
         spear = scipy.stats.spearmanr(input_scalars, target_scalars)[0]
@@ -83,8 +80,8 @@ class DistillationProxy(Distillation):
 
         # Get the proxy-loss 
         proxy = self.proxy_loss(
-            input_scalars = torch.sigmoid(pred_info['proxy']), 
-            target_logits = teacher_l, 
+            input_scalars = pred_info['proxy'], 
+            target_logits = teacher_l,
             param = self.proxy_regularization_strength,
         )
 
@@ -92,7 +89,7 @@ class DistillationProxy(Distillation):
         loss = proxy * self.proxy_w
 
         # Compute correlation
-        spear, pears = self.get_correlation_metrics(torch.sigmoid(pred_info['proxy']), teacher_l)
+        spear, pears = self.get_correlation_metrics(pred_info['proxy'], teacher_l)
 
         # Record metrics
         linfo = {'metrics': {
@@ -111,15 +108,15 @@ class DistillationProxy(Distillation):
         x_l, y_l = info['x_l'], info['y_l']
 
         # Perform model forward pass and get the prediction info dictionary
-        _, pred_info = self.valmodel(x_l)
+        _, pred_info = self.model(x_l)
 
         # The second input is for the teacher model
         teacher_l, _ = self.teacher(x_l)
 
         # Get the proxy-loss 
         proxy = self.proxy_loss(
-            input_scalars = torch.sigmoid(pred_info['proxy']), 
-            target_logits = teacher_l, 
+            input_scalars = pred_info['proxy'], 
+            target_logits = teacher_l,
             param = self.proxy_regularization_strength,
         )
 
@@ -127,7 +124,7 @@ class DistillationProxy(Distillation):
         loss = proxy * self.proxy_w
 
         # Compute correlation
-        spear, pears = self.get_correlation_metrics(torch.sigmoid(pred_info['proxy']), teacher_l)
+        spear, pears = self.get_correlation_metrics(pred_info['proxy'], teacher_l)
 
         # Record metrics
         linfo = {'metrics': {

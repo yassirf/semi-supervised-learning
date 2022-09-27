@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from .cross_entropy import crossentropy
 from .distillation import crossentropy_and_distillation
 from .distillation_and_proxy import crossentropy_and_distillation_and_proxy
+from .distillation_and_proxy import crossentropy_and_distillation_and_proxy_entropy_mse
 from .distillation_unlabelled import distillation_unlabelled
 from .unlabelled_distillation import crossentropy_and_unlabelled_distillation
 from .vat import crossentropy_and_vat

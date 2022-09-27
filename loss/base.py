@@ -49,8 +49,13 @@ class BaseLoss(object):
             self.metrics[key].reset()
     
     def reset_eval_metrics(self):
-        for key in self.metrics:
+        for key in self.eval_metrics:
             self.eval_metrics[key].reset()
+
+    def convert_key(self, key, evaluation = False):
+        if evaluation:
+            return "val-{}".format(key)
+        return key
 
     def record_metrics(self, batch_metrics, batch_size = 1, evaluation = False):
 
@@ -58,6 +63,7 @@ class BaseLoss(object):
         metric_dict = self.eval_metrics if evaluation else self.metrics
 
         for key, value in batch_metrics.items():
+            key = self.convert_key(key, evaluation)
             if key not in metric_dict:
                 metric_dict[key] = AverageMeter()
             metric_dict[key].update(value, batch_size)
