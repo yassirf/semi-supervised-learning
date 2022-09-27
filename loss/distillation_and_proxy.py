@@ -23,7 +23,10 @@ logging.basicConfig(
     level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-__all__ = ['crossentropy_and_distillation_and_proxy']
+__all__ = [
+    'crossentropy_and_distillation_and_proxy',
+    'crossentropy_and_distillation_and_proxy_entropy_mse',
+]
 
 
 def kl_divergence_loss(input_logits, target_logits, temperature):
