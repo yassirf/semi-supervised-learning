@@ -213,20 +213,6 @@ class DistillationProxyEntropyMSE(Distillation):
         # Proxy loss
         self.proxy_loss = mean_squared_error_loss
 
-    def get_correlation_metrics(self, input_logits, target_logits):
-
-        target_logits = target_logits.detach().clone()
-        input_logits = input_logits.detach().clone()
-
-        # Get the target scalars (negate since we want uncertainty)
-        target_scalars = get_entropy(target_logits).cpu()
-        input_scalars = get_entropy(input_logits).cpu()
-
-        # Compute correlations
-        spear = scipy.stats.spearmanr(input_scalars, target_scalars)[0]
-        pears = scipy.stats.pearsonr(input_scalars, target_scalars)[0]
-        return spear, pears
-
     def forward(self, info):
 
         # Get labelled image and label
