@@ -50,18 +50,24 @@ def get_entropy(logits):
 
 
 def smooth_rank_loss(input_scalars, target_logits, param):
+    """
+    Computes a spearman rank approximated loss.
+    Gradients only propagated through the input scalars.
+    """
 
-    # Get the entropy of the teacher
+    # Get the target scalars (negate since we want uncertainty)
     target_scalars = get_entropy(target_logits)
 
-    rank = soft_rank(target_scalars.unsqueeze(0), regularization_strength = param)
-    rank_pred = soft_rank(input_scalars.unsqueeze(0), regularization_strength = param)
-        
-    # Normalize and compute
-    rank1 = (rank - rank.mean()) / rank.norm()
-    rank2 = (rank_pred - rank_pred.mean()) / rank_pred.norm()
-        
-    return -(rank1 * rank2).sum()
+    # Compute the soft rank correlation score
+    rank1 = soft_rank(input_scalars, regularization_strength=param)
+    rank2 = soft_rank(target_scalars, regularization_strength=param)
+
+    # Normalize and compute batch spearman
+    rank1 = (rank1 - rank1.mean())/rank1.norm()
+    rank2 = (rank2 - rank2.mean())/rank2.norm()
+
+    spearman_loss = -(rank1 * rank2).mean()
+    return spearman_loss
 
 
 def mean_squared_error_loss(input_logits, target_logits, param):
