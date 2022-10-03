@@ -42,30 +42,26 @@ def kl_divergence_loss(input_logits, target_logits, temperature):
     return loss
 
 
-def get_normalized_entropy(target_logits):
-    k = target_logits.size(-1)
-    logp = torch.log_softmax(target_logits, dim = -1)
-    entropy = -torch.exp(logp) * logp
-    entropy = entropy.sum(-1)
-    return entropy/math.log(k)
-
-
-def binary_cross_entropy_loss(input_scalars, target_logits, param):
-
-    loss = nn.BCELoss()
-
-    # Get the target scalars (negate since we want uncertainty)
-    target_scalars = get_normalized_entropy(target_logits)
-
-    # Compute the binary cross entropy loss
-    return loss(input_scalars, target_scalars)
-
-
 def get_entropy(logits):
     logp = torch.log_softmax(logits, dim = -1)
     entropy = -torch.exp(logp) * logp
     entropy = entropy.sum(-1)
     return entropy
+
+
+def smooth_rank_loss(input_scalars, target_logits, param):
+
+    # Get the entropy of the teacher
+    target_scalars = get_entropy(target_logits)
+
+    rank = soft_rank(target_scalars.unsqueeze(0), regularization_strength = param)
+    rank_pred = soft_rank(input_scalars.unsqueeze(0), regularization_strength = param)
+        
+    # Normalize and compute
+    rank1 = (rank - rank.mean()) / rank.norm()
+    rank2 = (rank_pred - rank_pred.mean()) / rank_pred.norm()
+        
+    return -(rank1 * rank2).sum()
 
 
 def mean_squared_error_loss(input_logits, target_logits, param):
@@ -88,7 +84,7 @@ class DistillationProxy(Distillation):
         self.proxy_regularization_strength = args.proxy_regularization_strength
 
         # Proxy loss
-        self.proxy_loss = binary_cross_entropy_loss
+        self.proxy_loss = smooth_rank_loss
 
     def get_correlation_metrics(self, input_scalars, target_logits):
 
@@ -96,7 +92,7 @@ class DistillationProxy(Distillation):
         input_scalars = input_scalars.detach().clone().cpu()
 
         # Get the target scalars (negate since we want uncertainty)
-        target_scalars = get_normalized_entropy(target_logits).cpu()
+        target_scalars = get_entropy(target_logits).cpu()
 
         # Compute correlations
         spear = scipy.stats.spearmanr(input_scalars, target_scalars)[0]
@@ -123,7 +119,7 @@ class DistillationProxy(Distillation):
 
         # Get the proxy-loss 
         proxy = self.proxy_loss(
-            input_scalars = torch.sigmoid(pred_info['proxy']), 
+            input_scalars = pred_info['proxy'], 
             target_logits = teacher_l, 
             param = self.proxy_regularization_strength,
         )
@@ -133,7 +129,7 @@ class DistillationProxy(Distillation):
         loss += proxy * self.proxy_w
 
         # Compute correlation
-        spear, pears = self.get_correlation_metrics(torch.sigmoid(pred_info['proxy']), teacher_l)
+        spear, pears = self.get_correlation_metrics(pred_info['proxy'], teacher_l)
 
         # Compute accuracy
         acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
@@ -172,7 +168,7 @@ class DistillationProxy(Distillation):
 
         # Get the proxy-loss 
         proxy = self.proxy_loss(
-            input_scalars = torch.sigmoid(pred_info['proxy']), 
+            input_scalars = pred_info['proxy'], 
             target_logits = teacher_l, 
             param = self.proxy_regularization_strength,
         )
@@ -182,7 +178,7 @@ class DistillationProxy(Distillation):
         loss += proxy * self.proxy_w
 
         # Compute correlation
-        spear, pears = self.get_correlation_metrics(torch.sigmoid(pred_info['proxy']), teacher_l)
+        spear, pears = self.get_correlation_metrics(pred_info['proxy'], teacher_l)
 
         # Compute accuracy
         acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))

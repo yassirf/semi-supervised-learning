@@ -16,7 +16,13 @@ class TwoHeadWideResNet(WideResNet):
         super(TwoHeadWideResNet, self).__init__(depth, widen_factor, dropout_rate, num_classes, survival, survival_mode, **kwargs)
 
         # Define a secondary head
-        self.linear2 = nn.Linear(self.n_stages[3], 1)
+        self.pmlp = nn.Sequential(
+            nn.Linear(self.n_stages[3], num_classes),
+            nn.Softmax(dim = -1),
+            nn.Linear(num_classes, num_classes),
+            nn.Tanh(),
+            nn.Linear(num_classes, 1),
+        )
 
     def forward(self, x):
         x = self.conv1(x)
@@ -29,7 +35,7 @@ class TwoHeadWideResNet(WideResNet):
         
         # Pass through two separate linear layers
         out = self.linear(x)
-        out2 = self.linear2(x)
+        out2 = self.pmlp(x)
 
         info = {
             'pred': out, 
