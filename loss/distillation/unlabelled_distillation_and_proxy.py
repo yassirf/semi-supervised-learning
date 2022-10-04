@@ -14,7 +14,7 @@ import scipy.stats
 
 from loss.base import accuracy
 from loss.distillation.distillation_and_proxy import DistillationProxy
-from loss.distillation.distillation_and_proxy import DistillationProxyEntropyMSE
+from loss.distillation.distillation_and_proxy import DistillationProxyEntropyRank
 
 import logging 
 logging.basicConfig(
@@ -73,7 +73,7 @@ class UnlabelledDistillationProxy(DistillationProxy):
         return loss, linfo
 
 
-class UnlabelledDistillationProxyEntropyMSE(DistillationProxyEntropyMSE):
+class UnlabelledDistillationProxyEntropyMSE(DistillationProxyEntropyRank):
     def __init__(self, args, model, optimiser, scheduler):
         super(UnlabelledDistillationProxyEntropyMSE, self).__init__(args, model, optimiser, scheduler)
 

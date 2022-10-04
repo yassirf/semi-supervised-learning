@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     'crossentropy_and_distillation_and_proxy',
-    'crossentropy_and_distillation_and_proxy_entropy_mse',
+    'crossentropy_and_distillation_and_proxy_entropy_rank',
 ]
 
 
@@ -65,19 +65,17 @@ def smooth_rank_loss(input_scalars, target_logits, param):
     rank1 = (rank1 - rank1.mean())/rank1.norm()
     rank2 = (rank2 - rank2.mean())/rank2.norm()
 
-    spearman_loss = -(rank1 * rank2).mean()
+    spearman_loss = -(rank1 * rank2).sum()
     return spearman_loss
 
 
-def mean_squared_error_loss(input_logits, target_logits, param):
+def smooth_rank_loss_logits(input_logits, target_logits, param):
 
     # Get the target scalars (negate since we want uncertainty)
-    target_scalars = get_entropy(target_logits)
     input_scalars = get_entropy(input_logits)
 
-    # Compute the binary cross entropy loss
-    # return ((target_scalars - input_scalars) ** 2).mean()
-    return (torch.abs(target_scalars - input_scalars)).mean()
+    # Return the rank loss
+    return smooth_rank_loss(input_scalars, target_logits, param)
 
 
 class DistillationProxy(Distillation):
@@ -203,16 +201,16 @@ class DistillationProxy(Distillation):
         return loss, linfo
 
 
-class DistillationProxyEntropyMSE(Distillation):
+class DistillationProxyEntropyRank(Distillation):
     def __init__(self, args, model, optimiser, scheduler):
-        super(DistillationProxyEntropyMSE, self).__init__(args, model, optimiser, scheduler)
+        super(DistillationProxyEntropyRank, self).__init__(args, model, optimiser, scheduler)
 
         # Get proxy loss weight and regularization strength for differentiable rank losses
         self.proxy_w = args.proxy_weight
         self.proxy_regularization_strength = args.proxy_regularization_strength
 
         # Proxy loss
-        self.proxy_loss = mean_squared_error_loss
+        self.proxy_loss = smooth_rank_loss_logits
 
     def forward(self, info):
 
@@ -317,5 +315,5 @@ def crossentropy_and_distillation_and_proxy(**kwargs):
     return DistillationProxy(**kwargs)
 
 
-def crossentropy_and_distillation_and_proxy_entropy_mse(**kwargs):
-    return DistillationProxyEntropyMSE(**kwargs)
+def crossentropy_and_distillation_and_proxy_entropy_rank(**kwargs):
+    return DistillationProxyEntropyRank(**kwargs)
