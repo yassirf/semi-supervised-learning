@@ -5,9 +5,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import linalg as LA
 
-import fast_soft_sort
-from fast_soft_sort import pytorch_ops
-from fast_soft_sort.pytorch_ops import soft_rank, soft_sort
+import torchsort
+from torchsort import soft_rank, soft_sort
 
 import scipy
 import scipy.stats
@@ -59,8 +58,8 @@ def smooth_rank_loss(input_scalars, target_logits, param):
     target_scalars = get_entropy(target_logits)
 
     # Compute the soft rank correlation score
-    rank1 = soft_rank(input_scalars, regularization_strength=param)
-    rank2 = soft_rank(target_scalars, regularization_strength=param)
+    rank1 = soft_rank(input_scalars.unsqueeze(0), regularization_strength=param)
+    rank2 = soft_rank(target_scalars.unsqueeze(0), regularization_strength=param)
 
     # Normalize and compute batch spearman
     rank1 = (rank1 - rank1.mean())/rank1.norm()
