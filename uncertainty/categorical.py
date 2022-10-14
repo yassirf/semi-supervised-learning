@@ -100,9 +100,6 @@ class EnsembleCategoricalsEntropyProxy(EnsembleCategoricals):
         # Get the second head predictions scaled to the correct number
         outputs = info[key]
 
-        # Ensure these are mapped to sigmoid and scaled
-        outputs = math.log(args.num_classes) * torch.sigmoid(outputs).squeeze(-1)
-
         # Store all additional results
         returns['entropy-proxy'] = outputs
         return returns
