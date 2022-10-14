@@ -1,5 +1,6 @@
 from typing import List
 
+import math
 import torch
 import torch.nn as nn
 
@@ -16,7 +17,7 @@ def stack_dicts(list_of_dicts, dim = 0):
     for d in list_of_dicts:
 
         # And all items
-        for key, ptensor in sdict.items():
+        for key, ptensor in d.items():
 
             # And append them to lists
             if key not in sdict:

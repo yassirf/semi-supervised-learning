@@ -50,7 +50,7 @@ class UnlabelledDistillationProxy(DistillationProxy):
 
         # Get the proxy-loss 
         proxy = self.proxy_loss(
-            input_scalars = torch.sigmoid(pred_info['proxy']), 
+            input_scalars = pred_info['proxy'], 
             target_logits = teacher_ul, 
             param = self.proxy_regularization_strength,
         )
@@ -59,7 +59,7 @@ class UnlabelledDistillationProxy(DistillationProxy):
         loss = kd * self.distillation_t ** 2 + proxy * self.proxy_w
 
         # Compute correlation
-        spear, pears = self.get_correlation_metrics(torch.sigmoid(pred_info['proxy']), teacher_ul)
+        spear, pears = self.get_correlation_metrics(pred_info['proxy'], teacher_ul)
 
         # Record metrics
         linfo = {'metrics': {

@@ -155,7 +155,7 @@ def main():
 
     # Test model and generate predictions
     logger.info("Evaluation phase")
-    results = test(args, logger, device, data_iters['test'], model, uncertainty)
+    results = test(args, logger, device, data_iters['test'], ensemble, uncertainty)
 
     # Serializing json 
     json_object = json.dumps(results, indent = 4)
