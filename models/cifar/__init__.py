@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+from .ensemble import Ensemble
+
 from .normalizingflow import InverseAutoregressiveFlow, RadialFlow
 
 from .wideresnet import wideresnet162, wideresnet282, wideresnet2810, wideresnet404

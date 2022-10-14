@@ -15,6 +15,7 @@ import utils
 from utils.meter import AverageMeter
 from uncertainty.utils import UncertaintyStorage
 from loss.base import accuracy
+from models.cifar.ensemble import Ensemble
 
 # Logger for main training script
 import logging
@@ -125,14 +126,29 @@ def main():
         workers = args.workers
     )
 
-    # Load model
-    logger.info("Creating model: {}".format(args.arch))
-    model = utils.loaders.load_model(args).to(device)
-    logger.info("Number of parameters: {:.3f}M".format(sum(p.numel() for p in model.parameters()) / 1.0e6))
+    # Load models
+    logger.info("Creating models: {}".format(args.arch))
 
-    # Checkpointer for loading
-    checkpointer = utils.Checkpointer(args, path = args.checkpoint, save_last_n = -1)
-    model.load_state_dict(checkpointer.load(device)['state_dict'])
+    # Creating a list of models to be input into an ensemble
+    models = []
+
+    # Each path needs to be separated by a ":"
+    for path in args.checkpoint.split(":"):
+
+        # Load model
+        model = utils.loaders.load_model(args).to(device)
+        logger.info("Number of parameters: {:.3f}M".format(sum(p.numel() for p in model.parameters()) / 1.0e6))
+
+        # Checkpointer for loading
+        checkpointer = utils.Checkpointer(args, path = path, save_last_n = -1)
+        model.load_state_dict(checkpointer.load(device)['state_dict'])
+
+        # Append to list
+        models.append(model)
+
+    # Create ensemble
+    ensemble = Ensemble(models)
+    logger.info("==> Total number of parameters: {:.3f}M".format(sum(p.numel() for p in ensemble.parameters()) / 1.0e6))
 
     # Load uncertainty calculating class
     uncertainty = utils.loaders.load_uncertainty(args)
