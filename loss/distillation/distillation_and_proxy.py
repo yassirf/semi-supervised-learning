@@ -367,7 +367,11 @@ class DistillationProxyMI(Distillation):
         loss += proxy * self.proxy_w
 
         # Compute correlation
-        spear, pears = self.get_correlation_metrics(pred_info['proxy'], teacher_l)
+        spear, pears = self.get_correlation_metrics(
+            pred_info['proxy'], 
+            teacher_l, 
+            teacher_info['pred']
+        )
 
         # Compute accuracy
         acc = accuracy(pred_l.detach().clone(), y_l, top_k = (1, 5))
