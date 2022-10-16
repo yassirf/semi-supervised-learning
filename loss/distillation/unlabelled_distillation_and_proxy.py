@@ -24,7 +24,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    'unlabelled_distillation_and_proxy_only',
+    'unlabelled_distillation_and_proxy_rank',
     'unlabelled_distillation_and_proxy_entropy_mse_only',
 ]
 
@@ -117,7 +117,7 @@ class UnlabelledDistillationProxyEntropyMSE(DistillationProxyEntropyRank):
         return loss, linfo
 
 
-def unlabelled_distillation_and_proxy_only(**kwargs):
+def unlabelled_distillation_and_proxy_rank(**kwargs):
     return UnlabelledDistillationProxy(**kwargs)
 
 
