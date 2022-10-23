@@ -1,2 +1,2 @@
-from utils import dirichlet_kl_divergence
-from utils import DirichletEstimation
+from .utils import dirichlet_kl_divergence
+from .utils import DirichletEstimation
