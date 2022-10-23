@@ -1,35 +1,21 @@
-import math
 import utils
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import linalg as LA
 
-import fast_soft_sort
-from fast_soft_sort import pytorch_ops
-from fast_soft_sort.pytorch_ops import soft_rank, soft_sort
-
-import scipy
-import scipy.stats
-
 from loss.base import accuracy
 from loss.distillation.distillation_and_proxy import DistillationProxy
+from loss.distillation.distillation import kl_divergence_loss
 
-import logging 
-logging.basicConfig(
-    format='%(asctime)s %(levelname)-8s %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
 __all__ = [
-    'unlabelled_distillation_and_proxy_rank',
+    'unlabelled_proxy_rank'
 ]
 
-
-class UnlabelledDistillationProxy(DistillationProxy):
+class ProxyOnly(DistillationProxy):
     def __init__(self, args, model, optimiser, scheduler):
-        super(UnlabelledDistillationProxy, self).__init__(args, model, optimiser, scheduler)
+        super(ProxyOnly, self).__init__(args, model, optimiser, scheduler)
 
     def forward(self, info):
 
@@ -43,9 +29,6 @@ class UnlabelledDistillationProxy(DistillationProxy):
             # The second input is for the teacher model
             teacher_ul, _ = self.teacher(x_ul)
 
-        # Get the kl-loss averaged over batch
-        kd = self.consistency_loss(pred_ul, teacher_ul, self.distillation_t)
-
         # Get the proxy-loss 
         proxy = self.proxy_loss(
             input_scalars = pred_info['proxy'], 
@@ -54,7 +37,7 @@ class UnlabelledDistillationProxy(DistillationProxy):
         )
 
         # Compute total loss
-        loss = kd * self.distillation_t ** 2 + proxy * self.proxy_w
+        loss = proxy
 
         # Compute correlation
         spear, pears = self.get_correlation_metrics(pred_info['proxy'], teacher_ul)
@@ -62,7 +45,7 @@ class UnlabelledDistillationProxy(DistillationProxy):
         # Record metrics
         linfo = {'metrics': {
             'loss': loss.item(),
-            'kd': kd.item(),
+            'kd': 0,
             'proxy': proxy.item(),
             'spear': spear,
             'pears': pears,
@@ -71,5 +54,5 @@ class UnlabelledDistillationProxy(DistillationProxy):
         return loss, linfo
 
 
-def unlabelled_distillation_and_proxy_rank(**kwargs):
-    return UnlabelledDistillationProxy(**kwargs)
+def unlabelled_proxy_rank(**kwargs):
+    return ProxyOnly(**kwargs)

@@ -1,9 +1,11 @@
 from __future__ import absolute_import
 
 from .distillation import crossentropy_and_distillation
+from .dirichlet_distillation import crossentropy_and_dirichlet_distillation
 from .unlabelled_distillation import crossentropy_and_unlabelled_distillation
 
 from .distillation_and_proxy import crossentropy_and_distillation_and_proxy
 from .distillation_and_proxy import crossentropy_and_distillation_and_proxy_mi
 
 from .unlabelled_distillation_and_proxy import unlabelled_distillation_and_proxy_rank
+from .unlabelled_proxy_only import unlabelled_proxy_rank
