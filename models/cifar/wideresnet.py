@@ -17,6 +17,7 @@ __all__ = [
     'linearwideresnet282',
     'linearwideresnet2810',
     'linearwideresnet404',
+    'dirwideresnet162',
     'dirwideresnet282',
     'dirwideresnet2810',
     'dirwideresnet404',
@@ -215,6 +216,15 @@ def linearwideresnet404(**kwargs):
         dropout_rate = 0.3, 
         survival = 0.50,
         survival_mode = 'linear',
+        **kwargs
+    )
+
+
+def dirwideresnet162(**kwargs):
+    return DirWideResNet(
+        depth = 16, 
+        widen_factor = 2, 
+        dropout_rate = 0.3, 
         **kwargs
     )
 
