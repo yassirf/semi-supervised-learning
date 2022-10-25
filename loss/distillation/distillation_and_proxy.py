@@ -81,14 +81,14 @@ def get_mutual_information(logits, all_logits):
     return entropy - average_entropy
 
 
-def smooth_rank_loss_mutual_information(input_scalars, target_logits, all_target_logits, param):
+def smooth_rank_loss_mutual_information(input_scalars, target_logits, all_target_logits, temperature, param):
     """
     Computes a spearman rank approximated loss.
     Gradients only propagated through the input scalars.
     """
 
     # Get the target scalars (negate since we want uncertainty)
-    target_scalars = get_mutual_information(target_logits, all_target_logits)
+    target_scalars = get_mutual_information(target_logits/temperature, all_target_logits/temperature)
 
     # Compute the soft rank correlation score
     rank1 = soft_rank(input_scalars.unsqueeze(0), regularization_strength=param)
@@ -231,6 +231,7 @@ class DistillationProxyMI(Distillation):
 
         # Get proxy loss weight and regularization strength for differentiable rank losses
         self.proxy_w = args.proxy_weight
+        self.proxy_t = args.proxy_temperature
         self.proxy_regularization_strength = args.proxy_regularization_strength
 
         # Proxy loss
@@ -305,6 +306,7 @@ class DistillationProxyMI(Distillation):
             input_scalars = pred_info['proxy'], 
             target_logits = teacher_l,
             all_target_logits = teacher_info['pred'], 
+            temperature = self.proxy_t,
             param = self.proxy_regularization_strength,
         )
 
@@ -359,6 +361,7 @@ class DistillationProxyMI(Distillation):
             input_scalars = pred_info['proxy'], 
             target_logits = teacher_l,
             all_target_logits = teacher_info['pred'], 
+            temperature = self.proxy_t,
             param = self.proxy_regularization_strength,
         )
 

@@ -77,7 +77,7 @@ def get_dirichlet_mutual_information(logits):
     entropy = get_entropy(logits)
 
     # Get the alphas and compute the expected entropy
-    alphas = torch.exp(log_alphas)
+    alphas = torch.exp(logits)
     alpha0 = torch.sum(alphas, dim=-1)
 
     ex_entropy = torch.digamma(alpha0 + 1)
