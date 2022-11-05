@@ -23,6 +23,7 @@ logging.basicConfig(
     level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 __all__ = [
     'crossentropy_and_distillation_and_proxy',
     'crossentropy_and_distillation_and_proxy_mi'
@@ -70,6 +71,19 @@ def smooth_rank_loss(input_scalars, target_logits, param):
     return spearman_loss
 
 
+def mae_smooth_rank_loss(input_scalars, target_logits, param):
+    """
+    Computes a mae loss.
+    Gradients only propagated through the input scalars.
+    """
+
+    # Get the target scalars (negate since we want uncertainty)
+    target_scalars = get_entropy(target_logits)
+
+    mae_loss = (target_scalars - input_scalars).abs().mean()
+    return mae_loss
+
+
 def get_mutual_information(logits, all_logits):
     # logits have shape (batch, classes)
     entropy = get_entropy(logits)
@@ -102,6 +116,19 @@ def smooth_rank_loss_mutual_information(input_scalars, target_logits, all_target
     return spearman_loss
 
 
+def mae_smooth_rank_loss_mutual_information(input_scalars, target_logits, all_target_logits, temperature, param):
+    """
+    Computes a mae loss.
+    Gradients only propagated through the input scalars.
+    """
+
+    # Get the target scalars (negate since we want uncertainty)
+    target_scalars = get_mutual_information(target_logits/temperature, all_target_logits/temperature)
+
+    mae_loss = (target_scalars - input_scalars).abs().mean()
+    return mae_loss
+
+
 class DistillationProxy(Distillation):
     def __init__(self, args, model, optimiser, scheduler):
         super(DistillationProxy, self).__init__(args, model, optimiser, scheduler)
@@ -111,7 +138,7 @@ class DistillationProxy(Distillation):
         self.proxy_regularization_strength = args.proxy_regularization_strength
 
         # Proxy loss
-        self.proxy_loss = smooth_rank_loss
+        self.proxy_loss = smooth_rank_loss if not args.proxy_mae else mae_smooth_rank_loss
 
     def get_correlation_metrics(self, input_scalars, target_logits):
 
@@ -235,7 +262,7 @@ class DistillationProxyMI(Distillation):
         self.proxy_regularization_strength = args.proxy_regularization_strength
 
         # Proxy loss
-        self.proxy_loss = smooth_rank_loss_mutual_information
+        self.proxy_loss = smooth_rank_loss_mutual_information if not args.proxy_mae else mae_smooth_rank_loss_mutual_information
 
     def build_teacher(self):
         # Get device to build model on

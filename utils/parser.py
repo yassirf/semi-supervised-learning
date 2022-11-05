@@ -81,6 +81,7 @@ def get_loss_args(parser):
     parser.add_argument('--teacher-arch', default=None, type=str, help='teacher architecture in distillation losses (default: None)')
     parser.add_argument('--teacher-ratio', default=1.0, type=float, help='knowledge distillation weight (default: 1.0)')
     parser.add_argument('--temperature', default=1.0, type=float, help='knowledge distillation temperature (default: 1.0)')
+    parser.add_argument('--proxy-mae', default=0, type=int, help='soft rank replaced by mae (default: 0)')
     parser.add_argument('--proxy-weight', default=0.0, type=float, help='soft rank regularization strength (default: 0.0)')
     parser.add_argument('--proxy-temperature', default=1.0, type=float, help='temperature in proxy estimation (default: 1.0)')
     parser.add_argument('--proxy-regularization-strength', default=1.0, type=float, help='soft rank regularization strength (default: 1.0)')
